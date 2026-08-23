@@ -1,0 +1,4 @@
+catalog_name: apimanac-fixture
+schema_version: 1
+sources: []
+trust_levels: [high, low]

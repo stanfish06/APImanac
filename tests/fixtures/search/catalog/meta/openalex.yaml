@@ -1,0 +1,39 @@
+id: openalex
+name: OpenAlex
+description: An open catalog of scholarly works, authors, sources, institutions, topics, publishers and funders, with open access status and citation links between them.
+categories:
+- research
+- bibliographic
+tags:
+- scholarly
+- citations
+- open-access
+- papers
+- authors
+- institutions
+- metadata
+aliases:
+- open-alex
+- openalex-org
+lifecycle: active
+curation: curated
+sources:
+- manual
+capabilities:
+- Search works by title, abstract and full text
+- Look up an author, institution, source or funder
+- Filter works by open access status, year and topic
+- Report citation counts for a work
+profiles:
+- public
+homepage: https://openalex.org
+documentation: https://docs.openalex.org
+provenance:
+  description:
+    source: manual
+    last_observed: An open catalog of scholarly works, authors, sources, institutions, topics, publishers and funders, with open access status and citation links between them.
+    curated: true
+  name:
+    source: manual
+    last_observed: OpenAlex
+    curated: true

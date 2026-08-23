@@ -1,0 +1,36 @@
+profile_id: public
+api_id: semantic-scholar
+origins:
+  - https://api.semanticscholar.org
+auth:
+  type: none
+permissions:
+  - method: GET
+    path: /graph/**
+    decision: auto
+  - method: POST
+    path: /**
+    decision: deny
+  - method: PUT
+    path: /**
+    decision: deny
+  - method: PATCH
+    path: /**
+    decision: deny
+  - method: DELETE
+    path: /**
+    decision: deny
+network_scope: public
+cache:
+  enabled: false
+verification:
+  state: verified
+  verified_at: 2026-01-15T00:00:00Z
+  evidence:
+    contract_hash: v1:sha256:d75d55c6b262c1fdbf0242fc8c48f2dc2c981504efb75b9d9f63e9b20af5e0a5
+    method: GET
+    path: /graph
+    status: 200
+    response_hash: v1:sha256:0000000000000000000000000000000000000000000000000000000000000000
+    timestamp: 2026-01-15T00:00:00Z
+    tool_version: 0.0.0

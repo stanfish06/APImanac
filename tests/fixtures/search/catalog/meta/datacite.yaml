@@ -1,0 +1,36 @@
+id: datacite
+name: DataCite REST API
+description: Metadata for DOIs registered with DataCite, covering research dataset DOI registration, software, preprints and other non-article research outputs.
+categories:
+- research
+- data
+tags:
+- doi
+- dataset
+- registration
+- repositories
+- software
+- metadata
+aliases:
+- datacite-org
+lifecycle: active
+curation: imported
+sources:
+- apis-guru
+capabilities:
+- Search research dataset DOIs by query, client or resource type
+- Retrieve the metadata registered for a single DOI
+- List repositories and DOI providers
+profiles:
+- public
+homepage: https://datacite.org
+documentation: https://support.datacite.org/docs/api
+provenance:
+  description:
+    source: apis-guru
+    last_observed: Metadata for DOIs registered with DataCite, covering research dataset DOI registration, software, preprints and other non-article research outputs.
+    curated: false
+  name:
+    source: apis-guru
+    last_observed: DataCite REST API
+    curated: false

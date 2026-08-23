@@ -1,0 +1,27 @@
+profile_id: public
+api_id: wikidata
+origins:
+  - https://www.wikidata.org
+auth:
+  type: none
+permissions:
+  - method: GET
+    path: /w/**
+    decision: auto
+  - method: POST
+    path: /**
+    decision: deny
+  - method: PUT
+    path: /**
+    decision: deny
+  - method: PATCH
+    path: /**
+    decision: deny
+  - method: DELETE
+    path: /**
+    decision: deny
+network_scope: public
+cache:
+  enabled: false
+verification:
+  state: candidate

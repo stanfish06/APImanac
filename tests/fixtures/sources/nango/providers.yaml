@@ -1,0 +1,99 @@
+# Reduced, hand-authored excerpt modelled on NangoHQ/nango `packages/providers/providers.yaml`.
+linear:
+  display_name: Linear
+  auth_mode: BEARER
+  base_url: https://api.linear.app
+  docs: https://developers.linear.app/docs
+  categories: [productivity, ticketing]
+  proxy:
+    base_url: https://api.linear.app
+    headers:
+      authorization: Bearer ${accessToken}
+    retry:
+      at: x-ratelimit-requests-reset
+
+airtable:
+  display_name: Airtable
+  auth_mode: API_KEY
+  base_url: https://api.airtable.com/v0
+  docs: https://airtable.com/developers/web/api/introduction
+  categories: [productivity, database]
+  proxy:
+    base_url: https://api.airtable.com/v0
+    headers:
+      X-Api-Key: ${apiKey}
+      X-Account: ${accountId}
+
+airtable-pat:
+  display_name: Airtable (personal access token)
+  alias: airtable
+
+weatherapi:
+  display_name: WeatherAPI
+  auth_mode: API_KEY
+  docs: https://www.weatherapi.com/docs/
+  categories: [weather]
+  proxy:
+    base_url: https://api.weatherapi.com/v1
+    query:
+      key: ${apiKey}
+
+braintree:
+  display_name: Braintree
+  auth_mode: BASIC
+  docs: https://developer.paypal.com/braintree/docs
+  categories: [payment]
+  proxy:
+    base_url: https://api.braintreegateway.com
+
+github:
+  display_name: GitHub
+  auth_mode: OAUTH2
+  base_url: https://api.github.com
+  docs: https://docs.github.com/rest
+  categories: [dev-tools]
+  proxy:
+    base_url: https://api.github.com
+
+zendesk:
+  display_name: Zendesk
+  auth_mode: API_KEY
+  docs: https://developer.zendesk.com/api-reference/
+  categories: [support]
+  connection_config:
+    subdomain:
+      type: string
+  proxy:
+    base_url: https://${connectionConfig.subdomain}.zendesk.com/api/v2
+    headers:
+      Authorization: Bearer ${apiKey}
+
+docusign:
+  display_name: DocuSign
+  auth_mode: API_KEY
+  docs: https://developers.docusign.com/docs/
+  categories: [productivity]
+  proxy:
+    base_url: https://demo.docusign.net/restapi
+    headers:
+      Authorization: Basic ${base64(apiKey)}
+
+notion:
+  display_name: Notion
+  auth_mode: BEARER
+  docs: https://developers.notion.com/reference/intro
+  categories: [productivity]
+
+badbase:
+  display_name: Bad Base
+  auth_mode: BEARER
+  proxy:
+    base_url: not-a-url
+
+mystery:
+  auth_mode: BEARER
+  base_url: https://api.mystery.example
+
+broken:
+  display_name: Broken
+  auth_mode: 7

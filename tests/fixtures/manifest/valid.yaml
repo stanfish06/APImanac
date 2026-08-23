@@ -1,0 +1,10 @@
+catalog_name: apimanac-fixture
+schema_version: 1
+sources:
+  - id: public-apis
+    name: public-apis
+    manifest: catalog/sources/public-apis/manifest.yaml
+    homepage: https://github.com/public-apis/public-apis
+    license: MIT
+lifecycle_vocabulary: [active, deprecated, gone, merged]
+curation_vocabulary: [imported, curated]

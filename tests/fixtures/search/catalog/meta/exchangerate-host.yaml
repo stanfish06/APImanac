@@ -1,0 +1,35 @@
+id: exchangerate-host
+name: exchangerate.host
+description: Foreign exchange rates and currency conversion between currencies, with historical rate series.
+categories:
+- finance
+- currency
+tags:
+- currency
+- conversion
+- exchange
+- rates
+- forex
+- historical
+aliases:
+- exchangerate
+lifecycle: active
+curation: imported
+sources:
+- public-apis
+capabilities:
+- Convert an amount between two currencies
+- Read latest and historical exchange rates
+profiles:
+- public
+homepage: https://exchangerate.host
+documentation: https://exchangerate.host/docs
+provenance:
+  description:
+    source: public-apis
+    last_observed: Foreign exchange rates and currency conversion between currencies, with historical rate series.
+    curated: false
+  name:
+    source: public-apis
+    last_observed: exchangerate.host
+    curated: false

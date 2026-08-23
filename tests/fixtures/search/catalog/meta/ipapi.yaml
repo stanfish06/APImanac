@@ -1,0 +1,34 @@
+id: ipapi
+name: ipapi
+description: Geolocate an IP address to a country, region, city and approximate coordinates.
+categories:
+- network
+- geolocation
+tags:
+- ip
+- address
+- geolocation
+- country
+- city
+- coordinates
+aliases:
+- ipapi-co
+lifecycle: deprecated
+curation: imported
+sources:
+- public-apis
+capabilities:
+- Geolocate an IP address to a city and country
+profiles:
+- public
+homepage: https://ipapi.co
+documentation: https://ipapi.co/api/
+provenance:
+  description:
+    source: public-apis
+    last_observed: Geolocate an IP address to a country, region, city and approximate coordinates.
+    curated: false
+  name:
+    source: public-apis
+    last_observed: ipapi
+    curated: false

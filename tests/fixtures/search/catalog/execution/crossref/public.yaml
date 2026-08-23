@@ -1,0 +1,43 @@
+profile_id: public
+api_id: crossref
+origins:
+  - https://api.crossref.org
+auth:
+  type: none
+permissions:
+  - method: GET
+    path: /works/**
+    decision: auto
+  - method: GET
+    path: /journals/**
+    decision: auto
+  - method: GET
+    path: /funders/**
+    decision: auto
+  - method: POST
+    path: /**
+    decision: deny
+  - method: PUT
+    path: /**
+    decision: deny
+  - method: PATCH
+    path: /**
+    decision: deny
+  - method: DELETE
+    path: /**
+    decision: deny
+network_scope: public
+cache:
+  enabled: true
+  ttl_seconds: 900
+verification:
+  state: verified
+  verified_at: 2026-01-15T00:00:00Z
+  evidence:
+    contract_hash: v1:sha256:b3907296352d850d2fd662d805cc1a5038cf3f30451c98abc0673e5e42cd5ea0
+    method: GET
+    path: /works
+    status: 200
+    response_hash: v1:sha256:0000000000000000000000000000000000000000000000000000000000000000
+    timestamp: 2026-01-15T00:00:00Z
+    tool_version: 0.0.0

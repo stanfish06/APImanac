@@ -1,0 +1,34 @@
+id: slack
+name: Slack Web API
+description: Post a message to a chat channel, read conversation history and manage Slack workspace users.
+categories:
+- messaging
+tags:
+- chat
+- channel
+- message
+- conversation
+- workspace
+aliases:
+- slack-com
+lifecycle: active
+curation: imported
+sources:
+- nango
+capabilities:
+- Post a message to a chat channel
+- Read conversation history
+- List workspace users
+profiles:
+- oauth
+homepage: https://slack.com
+documentation: https://api.slack.com/web
+provenance:
+  description:
+    source: nango
+    last_observed: Post a message to a chat channel, read conversation history and manage Slack workspace users.
+    curated: false
+  name:
+    source: nango
+    last_observed: Slack Web API
+    curated: false

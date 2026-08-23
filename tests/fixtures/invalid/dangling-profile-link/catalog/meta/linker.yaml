@@ -1,0 +1,3 @@
+id: linker
+name: Links a profile that does not exist
+profiles: [absent]

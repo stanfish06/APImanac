@@ -1,0 +1,36 @@
+id: stripe
+name: Stripe API
+description: Accept card payments, issue refunds, and manage customers, subscriptions and payouts.
+categories:
+- payments
+- finance
+tags:
+- payments
+- card
+- refunds
+- customers
+- subscriptions
+- billing
+aliases:
+- stripe-com
+lifecycle: active
+curation: imported
+sources:
+- nango
+capabilities:
+- Create and read a payment intent
+- Issue a refund against a charge
+- Read customer and subscription records
+profiles:
+- secret-key
+homepage: https://stripe.com
+documentation: https://stripe.com/docs/api
+provenance:
+  description:
+    source: nango
+    last_observed: Accept card payments, issue refunds, and manage customers, subscriptions and payouts.
+    curated: false
+  name:
+    source: nango
+    last_observed: Stripe API
+    curated: false

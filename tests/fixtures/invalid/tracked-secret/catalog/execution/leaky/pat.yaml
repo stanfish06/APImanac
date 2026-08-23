@@ -1,0 +1,13 @@
+profile_id: pat
+api_id: leaky
+description: Set LEAKY_API_TOKEN before calling.
+origins: [https://api.leaky.example]
+auth:
+  type: bearer
+  credential_id: leaky-token
+  components:
+    - name: token
+  placements:
+    - kind: header
+      header: Authorization
+      template: 'Bearer {token}'

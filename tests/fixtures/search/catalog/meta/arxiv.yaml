@@ -1,0 +1,35 @@
+id: arxiv
+name: arXiv API
+description: Search and retrieve arXiv preprints by subject, author, title and abstract.
+categories:
+- research
+- preprints
+tags:
+- preprint
+- physics
+- mathematics
+- computer-science
+- subject
+- abstract
+aliases:
+- arxiv-org
+lifecycle: active
+curation: curated
+sources:
+- manual
+capabilities:
+- Search preprints by subject, author or title
+- Retrieve the metadata and abstract of a preprint
+profiles:
+- public
+homepage: https://arxiv.org
+documentation: https://info.arxiv.org/help/api/index.html
+provenance:
+  description:
+    source: manual
+    last_observed: Search and retrieve arXiv preprints by subject, author, title and abstract.
+    curated: true
+  name:
+    source: manual
+    last_observed: arXiv API
+    curated: true

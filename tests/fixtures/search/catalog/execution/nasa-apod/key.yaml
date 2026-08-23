@@ -1,0 +1,34 @@
+profile_id: key
+api_id: nasa-apod
+origins:
+  - https://api.nasa.gov
+auth:
+  type: query_key
+  credential_id: nasa-key
+  components:
+    - name: key
+  placements:
+    - kind: query
+      parameter: api_key
+      template: "{key}"
+permissions:
+  - method: GET
+    path: /planetary/**
+    decision: auto
+  - method: POST
+    path: /**
+    decision: deny
+  - method: PUT
+    path: /**
+    decision: deny
+  - method: PATCH
+    path: /**
+    decision: deny
+  - method: DELETE
+    path: /**
+    decision: deny
+network_scope: public
+cache:
+  enabled: false
+verification:
+  state: candidate

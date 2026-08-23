@@ -1,0 +1,33 @@
+id: nasa-apod
+name: NASA Astronomy Picture of the Day
+description: The NASA astronomy picture of the day, with its title, explanation and image URL.
+categories:
+- space
+- images
+tags:
+- astronomy
+- picture
+- nasa
+- image
+- space
+aliases:
+- apod
+lifecycle: active
+curation: imported
+sources:
+- public-apis
+capabilities:
+- Read the astronomy picture of the day for a date
+profiles:
+- key
+homepage: https://api.nasa.gov
+documentation: https://api.nasa.gov
+provenance:
+  description:
+    source: public-apis
+    last_observed: The NASA astronomy picture of the day, with its title, explanation and image URL.
+    curated: false
+  name:
+    source: public-apis
+    last_observed: NASA Astronomy Picture of the Day
+    curated: false

@@ -1,0 +1,19 @@
+profile_id: combined
+api_id: mixed
+provenance:
+  origins: apis-guru
+  auth: nango
+origins: [https://api.mixed.example]
+auth:
+  type: bearer
+  credential_id: mixed-token
+  components:
+    - name: token
+  placements:
+    - kind: header
+      header: Authorization
+      template: 'Bearer {token}'
+permissions:
+  - method: GET
+    path: /**
+    decision: confirm

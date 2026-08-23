@@ -1,0 +1,25 @@
+id: old-pubmed-api
+name: PubMed legacy API
+description: Superseded by the NCBI E-utilities record.
+categories:
+- research
+tags:
+- pubmed
+aliases:
+- pubmed-legacy
+lifecycle: merged
+curation: curated
+sources:
+- manual
+capabilities: []
+profiles: []
+merged_into: ncbi-eutils
+provenance:
+  description:
+    source: manual
+    last_observed: Superseded by the NCBI E-utilities record.
+    curated: true
+  name:
+    source: manual
+    last_observed: PubMed legacy API
+    curated: true

@@ -1,0 +1,29 @@
+{
+  "openapi": "3.0.0",
+  "info": { "title": "Google Drive", "version": "v3" },
+  "servers": [{ "url": "https://www.googleapis.com/drive/v3" }],
+  "components": {
+    "securitySchemes": {
+      "oauth2": {
+        "type": "oauth2",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://accounts.google.com/o/oauth2/auth",
+            "tokenUrl": "https://oauth2.googleapis.com/token",
+            "scopes": {
+              "https://www.googleapis.com/auth/drive": "See and manage your files",
+              "https://www.googleapis.com/auth/drive.readonly": "See your files"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/files": { "get": { "operationId": "listFiles" } },
+    "/files/{fileId}": {
+      "get": { "operationId": "getFile" },
+      "head": { "operationId": "headFile" }
+    }
+  }
+}

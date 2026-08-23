@@ -1,0 +1,81 @@
+# Twenty realistic research and general-discovery queries with relevance labels,
+# authored against the fixture catalog before any ranking weight was tuned.
+# `relevant` lists every record a reasonable user would accept in the top five.
+version: 1
+queries:
+  - id: q01
+    text: open access scholarly works
+    relevant: [openalex]
+  - id: q02
+    text: resolve a DOI to publication metadata
+    relevant: [crossref, datacite]
+  - id: q03
+    text: pubmed biomedical literature search
+    relevant: [ncbi-eutils]
+  - id: q04
+    text: research dataset DOI registration
+    relevant: [datacite]
+  - id: q05
+    text: list issues on a repository
+    relevant: [github, gitlab]
+  - id: q06
+    text: current weather forecast for a city
+    relevant: [openweathermap]
+  - id: q07
+    text: astronomy picture of the day
+    relevant: [nasa-apod]
+  - id: q08
+    text: encyclopedia article text
+    relevant: [wikipedia]
+  - id: q09
+    text: structured knowledge graph statements
+    relevant: [wikidata]
+  - id: q10
+    text: accept card payments and refunds
+    relevant: [stripe]
+  - id: q11
+    text: post a message to a chat channel
+    relevant: [slack]
+  - id: q12
+    text: preprint search by subject
+    relevant: [arxiv]
+  - id: q13
+    text: citation counts for a paper
+    relevant: [semantic-scholar, openalex, crossref]
+  - id: q14
+    text: currency conversion exchange rates
+    relevant: [exchangerate-host]
+  - id: q15
+    text: geolocate an IP address
+    relevant: [ipapi]
+  - id: q16
+    text: genomic nucleotide sequence records
+    relevant: [ncbi-eutils]
+  - id: q17
+    text: code search across public repositories
+    relevant: [github]
+  - id: q18
+    text: bibliographic metadata for journals
+    relevant: [crossref, openalex, semantic-scholar]
+  - id: q19
+    text: author profiles and institutions
+    relevant: [openalex, semantic-scholar]
+  - id: q20
+    text: pull request review comments
+    relevant: [github, gitlab]
+
+# Exact lookups must all resolve; a single miss fails the suite regardless of
+# the relevance count.
+exact:
+  - query: openalex
+    expect: openalex
+  - query: api-github-com
+    expect: github
+  - query: open-alex
+    expect: openalex
+  - query: old-pubmed-api
+    expect: ncbi-eutils
+  - query: eutils
+    expect: ncbi-eutils
+  - query: s2
+    expect: semantic-scholar

@@ -1,0 +1,38 @@
+id: crossref
+name: Crossref REST API
+description: 'Bibliographic metadata for scholarly publications registered with Crossref: DOIs, titles, authors, journals, funders, licences and reference lists.'
+categories:
+- research
+- bibliographic
+tags:
+- doi
+- citations
+- journals
+- publishers
+- metadata
+- references
+aliases:
+- crossref-org
+- api-crossref-org
+lifecycle: active
+curation: curated
+sources:
+- manual
+capabilities:
+- Resolve a DOI to its registered publication metadata
+- Search works by bibliographic query or funder
+- List journals, members and funders
+- Return the reference list and citation counts of a work
+profiles:
+- public
+homepage: https://www.crossref.org
+documentation: https://api.crossref.org
+provenance:
+  description:
+    source: manual
+    last_observed: 'Bibliographic metadata for scholarly publications registered with Crossref: DOIs, titles, authors, journals, funders, licences and reference lists.'
+    curated: true
+  name:
+    source: manual
+    last_observed: Crossref REST API
+    curated: true

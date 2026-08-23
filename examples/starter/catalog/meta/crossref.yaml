@@ -1,0 +1,21 @@
+id: crossref
+name: Crossref REST API
+description: >-
+  Metadata for scholarly publications registered with Crossref: DOIs, titles,
+  authors, funders, licences, and reference lists.
+homepage: https://www.crossref.org
+documentation: https://api.crossref.org/swagger-ui/index.html
+categories: [research, bibliographic]
+tags: [doi, citations, metadata, publishers, journals, papers]
+aliases: [crossref-org, api-crossref-org]
+lifecycle: active
+curation: curated
+sources: [manual]
+provenance:
+  name: { source: manual, curated: true }
+  description: { source: manual, curated: true }
+capabilities:
+  - Resolve a DOI to its registered metadata
+  - Search works by bibliographic query, author, or funder
+  - List journals, members, and funders
+profiles: [public]

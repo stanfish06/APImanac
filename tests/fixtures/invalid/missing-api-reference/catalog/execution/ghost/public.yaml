@@ -1,0 +1,5 @@
+profile_id: public
+api_id: ghost
+origins: [https://api.ghost.example]
+auth:
+  type: none

@@ -1,0 +1,4 @@
+{
+  "input": { "outer": { "z": [1, 2, { "y": true, "x": "s" }], "a": {} }, "empty": [] },
+  "canonical": "{\"empty\":[],\"outer\":{\"a\":{},\"z\":[1,2,{\"x\":\"s\",\"y\":true}]}}"
+}

@@ -1,0 +1,34 @@
+profile_id: pat
+api_id: gitlab
+origins:
+  - https://gitlab.com
+auth:
+  type: header_key
+  credential_id: gitlab-pat
+  components:
+    - name: key
+  placements:
+    - kind: header
+      header: PRIVATE-TOKEN
+      template: "{key}"
+permissions:
+  - method: GET
+    path: /api/v4/**
+    decision: auto
+  - method: POST
+    path: /**
+    decision: deny
+  - method: PUT
+    path: /**
+    decision: deny
+  - method: PATCH
+    path: /**
+    decision: deny
+  - method: DELETE
+    path: /**
+    decision: deny
+network_scope: public
+cache:
+  enabled: false
+verification:
+  state: candidate

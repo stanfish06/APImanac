@@ -1,0 +1,23 @@
+catalog_name: apimanac-search-fixture
+schema_version: 1
+sources:
+- id: public-apis
+  name: public-apis
+  manifest: catalog/sources/public-apis/manifest.yaml
+  license: MIT
+- id: nango
+  name: Nango
+  manifest: catalog/sources/nango/manifest.yaml
+  license: ELv2
+- id: apis-guru
+  name: APIs.guru
+  manifest: catalog/sources/apis-guru/manifest.yaml
+  license: CC0-1.0
+lifecycle_vocabulary:
+- active
+- deprecated
+- gone
+- merged
+curation_vocabulary:
+- imported
+- curated

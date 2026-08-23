@@ -1,0 +1,21 @@
+id: ncbi-eutils
+name: NCBI E-utilities
+description: >-
+  Programmatic access to the NCBI Entrez databases, including PubMed, Gene,
+  Nucleotide, Protein, and Taxonomy, through the E-utilities endpoints.
+homepage: https://www.ncbi.nlm.nih.gov
+documentation: https://www.ncbi.nlm.nih.gov/books/NBK25501/
+categories: [research, biology, bibliographic]
+tags: [pubmed, genomics, entrez, biomedical, literature, sequences]
+aliases: [eutils, entrez, ncbi]
+lifecycle: active
+curation: curated
+sources: [manual]
+provenance:
+  name: { source: manual, curated: true }
+  description: { source: manual, curated: true }
+capabilities:
+  - Search an Entrez database and return matching UIDs (esearch)
+  - Fetch records for a set of UIDs in a chosen format (efetch)
+  - Summarize records and find related entries (esummary, elink)
+profiles: [public, keyed]

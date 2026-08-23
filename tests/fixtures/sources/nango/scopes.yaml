@@ -1,0 +1,8 @@
+# Reduced excerpt of the separate Nango scopes file.
+linear:
+  scopes: [read, write, issues:create]
+airtable:
+  - data.records:read
+  - schema.bases:read
+github:
+  scopes: [repo, read:org]

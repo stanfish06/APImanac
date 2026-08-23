@@ -1,0 +1,128 @@
+{
+  "openalex.org": {
+    "added": "2023-02-15T00:00:00.000Z",
+    "preferred": "1.0.0",
+    "versions": {
+      "1.0.0": {
+        "added": "2023-02-15T00:00:00.000Z",
+        "updated": "2024-11-02T00:00:00.000Z",
+        "swaggerUrl": "https://api.apis.guru/v2/specs/openalex.org/1.0.0/openapi.json",
+        "swaggerYamlUrl": "https://api.apis.guru/v2/specs/openalex.org/1.0.0/openapi.yaml",
+        "link": "https://docs.openalex.org",
+        "info": {
+          "title": "OpenAlex",
+          "description": "An open catalog of scholarly works, authors, sources and institutions.",
+          "version": "1.0.0",
+          "x-apisguru-categories": ["open_data"]
+        }
+      }
+    }
+  },
+  "googleapis.com:drive": {
+    "preferred": "v3",
+    "versions": {
+      "v3": {
+        "updated": "2024-08-01T00:00:00.000Z",
+        "swaggerUrl": "https://api.apis.guru/v2/specs/googleapis.com/drive/v3/openapi.json",
+        "link": "https://developers.google.com/drive/",
+        "info": {
+          "title": "Google Drive",
+          "description": "Uploads and downloads files, and manages sharing.",
+          "version": "v3",
+          "x-apisguru-categories": ["storage"]
+        }
+      }
+    }
+  },
+  "petstore": {
+    "preferred": "1.0.0",
+    "versions": {
+      "1.0.0": {
+        "updated": "2021-04-05T00:00:00.000Z",
+        "swaggerUrl": "https://api.apis.guru/v2/specs/petstore/1.0.0/swagger.json",
+        "link": "https://petstore.example.com/docs",
+        "info": {
+          "title": "Petstore",
+          "description": "A small pet inventory service.",
+          "version": "1.0.0",
+          "x-apisguru-categories": ["ecommerce"]
+        }
+      }
+    }
+  },
+  "weathermap": {
+    "preferred": "2.5",
+    "versions": {
+      "2.5": {
+        "updated": "2022-01-01T00:00:00.000Z",
+        "swaggerUrl": "https://api.apis.guru/v2/specs/weathermap/2.5/openapi.json",
+        "link": "https://openweathermap.org/api",
+        "info": {
+          "title": "Weathermap",
+          "description": "Current weather and forecasts.",
+          "version": "2.5",
+          "x-apisguru-categories": ["weather"]
+        }
+      }
+    }
+  },
+  "bigapi": {
+    "preferred": "1.0.0",
+    "versions": {
+      "1.0.0": {
+        "updated": "2024-01-01T00:00:00.000Z",
+        "swaggerUrl": "https://api.apis.guru/v2/specs/bigapi/1.0.0/openapi.json",
+        "info": {
+          "title": "Big API",
+          "description": "A specification far past the configured size limit.",
+          "version": "1.0.0",
+          "x-apisguru-categories": ["developer_tools"]
+        }
+      }
+    }
+  },
+  "garbled": {
+    "preferred": "1.0.0",
+    "versions": {
+      "1.0.0": {
+        "updated": "2024-01-01T00:00:00.000Z",
+        "swaggerUrl": "https://api.apis.guru/v2/specs/garbled/1.0.0/openapi.json",
+        "info": { "title": "Garbled", "version": "1.0.0" }
+      }
+    }
+  },
+  "legacy": {
+    "preferred": "1.2",
+    "versions": {
+      "1.2": {
+        "updated": "2015-01-01T00:00:00.000Z",
+        "swaggerUrl": "https://api.apis.guru/v2/specs/legacy/1.2/swagger.json",
+        "info": { "title": "Legacy", "version": "1.2" }
+      }
+    }
+  },
+  "noservers": {
+    "preferred": "1.0.0",
+    "versions": {
+      "1.0.0": {
+        "updated": "2024-01-01T00:00:00.000Z",
+        "swaggerUrl": "https://api.apis.guru/v2/specs/noservers/1.0.0/openapi.json",
+        "info": { "title": "No Servers", "version": "1.0.0" }
+      }
+    }
+  },
+  "nospecurl": {
+    "preferred": "1.0.0",
+    "versions": {
+      "1.0.0": {
+        "updated": "2024-01-01T00:00:00.000Z",
+        "link": "https://example.org/docs",
+        "info": { "title": "No Spec URL", "version": "1.0.0" }
+      }
+    }
+  },
+  "noversions": {
+    "preferred": "3.0.0",
+    "versions": {}
+  }
+}

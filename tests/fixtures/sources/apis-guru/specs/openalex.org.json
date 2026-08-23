@@ -1,0 +1,14 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "OpenAlex",
+    "description": "An open catalog of scholarly works, authors, sources and institutions.",
+    "version": "1.0.0"
+  },
+  "servers": [{ "url": "https://api.openalex.org" }],
+  "paths": {
+    "/works": { "get": { "operationId": "getWorks" } },
+    "/works/{id}": { "get": { "operationId": "getWork" } },
+    "/authors/{id}": { "get": { "operationId": "getAuthor" }, "delete": { "operationId": "no" } }
+  }
+}

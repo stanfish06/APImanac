@@ -1,0 +1,35 @@
+id: wikipedia
+name: Wikipedia REST API
+description: Article text, summaries, media and search over Wikipedia, the free encyclopedia.
+categories:
+- reference
+- encyclopedia
+tags:
+- encyclopedia
+- article
+- text
+- summary
+- wiki
+aliases:
+- wikipedia-org
+- en-wikipedia
+lifecycle: active
+curation: curated
+sources:
+- manual
+capabilities:
+- Read the encyclopedia article text for a title
+- Read an article summary and its media list
+profiles:
+- public
+homepage: https://www.wikipedia.org
+documentation: https://en.wikipedia.org/api/rest_v1/
+provenance:
+  description:
+    source: manual
+    last_observed: Article text, summaries, media and search over Wikipedia, the free encyclopedia.
+    curated: true
+  name:
+    source: manual
+    last_observed: Wikipedia REST API
+    curated: true

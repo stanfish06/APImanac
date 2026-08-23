@@ -1,0 +1,33 @@
+id: openweathermap
+name: OpenWeatherMap
+description: Current weather, forecast and historical weather data for a city or coordinate.
+categories:
+- weather
+tags:
+- weather
+- forecast
+- city
+- temperature
+- climate
+aliases:
+- owm
+lifecycle: active
+curation: imported
+sources:
+- public-apis
+capabilities:
+- Read the current weather for a city
+- Read a multi-day weather forecast
+profiles:
+- key
+homepage: https://openweathermap.org
+documentation: https://openweathermap.org/api
+provenance:
+  description:
+    source: public-apis
+    last_observed: Current weather, forecast and historical weather data for a city or coordinate.
+    curated: false
+  name:
+    source: public-apis
+    last_observed: OpenWeatherMap
+    curated: false

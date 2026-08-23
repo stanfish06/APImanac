@@ -1,0 +1,6 @@
+{
+  "swagger": "1.2",
+  "info": { "title": "Legacy", "version": "1.2" },
+  "basePath": "https://legacy.example.com/api",
+  "apis": []
+}

@@ -1,0 +1,20 @@
+profile_id: public
+api_id: verified
+origins: [https://api.verified.example]
+auth:
+  type: none
+permissions:
+  - method: GET
+    path: /**
+    decision: auto
+verification:
+  state: verified
+  verified_at: '2026-01-01T00:00:00Z'
+  evidence:
+    contract_hash: 'v1:sha256:0000000000000000000000000000000000000000000000000000000000000000'
+    method: GET
+    path: /ping
+    status: 200
+    response_hash: 'v1:sha256:1111111111111111111111111111111111111111111111111111111111111111'
+    timestamp: '2026-01-01T00:00:00Z'
+    tool_version: '0.0.0'

@@ -1,0 +1,37 @@
+id: gitlab
+name: GitLab REST API
+description: The GitLab REST API for projects, issues, merge request review comments, pipelines and repository files.
+categories:
+- developer
+- version-control
+tags:
+- git
+- repository
+- issues
+- merge-request
+- review
+- comments
+- pipelines
+aliases:
+- gitlab-com
+lifecycle: active
+curation: imported
+sources:
+- apis-guru
+capabilities:
+- List issues on a repository project
+- Read merge request review comments
+- Read repository files and pipelines
+profiles:
+- pat
+homepage: https://gitlab.com
+documentation: https://docs.gitlab.com/ee/api/
+provenance:
+  description:
+    source: apis-guru
+    last_observed: The GitLab REST API for projects, issues, merge request review comments, pipelines and repository files.
+    curated: false
+  name:
+    source: apis-guru
+    last_observed: GitLab REST API
+    curated: false

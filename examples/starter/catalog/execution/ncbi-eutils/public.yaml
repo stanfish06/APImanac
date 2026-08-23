@@ -1,0 +1,47 @@
+profile_id: public
+api_id: ncbi-eutils
+description: >-
+  E-utilities without an API key. NCBI throttles unkeyed callers harder; the
+  `keyed` profile carries the optional api_key.
+origins: [https://eutils.ncbi.nlm.nih.gov]
+base_path: /entrez/eutils
+auth:
+  type: none
+permissions:
+  - method: GET
+    path: /entrez/eutils/esearch.fcgi
+    decision: auto
+  - method: GET
+    path: /entrez/eutils/esummary.fcgi
+    decision: auto
+  - method: GET
+    path: /entrez/eutils/efetch.fcgi
+    decision: auto
+  - method: GET
+    path: /entrez/eutils/elink.fcgi
+    decision: auto
+  - method: POST
+    path: /**
+    decision: deny
+  - method: PUT
+    path: /**
+    decision: deny
+  - method: PATCH
+    path: /**
+    decision: deny
+  - method: DELETE
+    path: /**
+    decision: deny
+network_scope: public
+redirects:
+  max: 2
+cache:
+  enabled: true
+  ttl_seconds: 600
+health_probe:
+  method: GET
+  path: /entrez/eutils/einfo.fcgi
+  query: { retmode: json }
+  expect_status: 200
+verification:
+  state: candidate

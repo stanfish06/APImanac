@@ -1,0 +1,10 @@
+id: lifecycle-active
+name: Lifecycle active
+description: A record exercising the active lifecycle value.
+lifecycle: active
+curation: imported
+sources: [public-apis]
+provenance:
+  description:
+    source: public-apis
+    last_observed: A record exercising the active lifecycle value.

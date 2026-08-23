@@ -1,0 +1,7 @@
+id: lifecycle-merged
+name: Lifecycle merged
+description: A record redirecting to its merge target.
+lifecycle: merged
+merged_into: lifecycle-active
+curation: curated
+aliases: [old-lifecycle-merged]

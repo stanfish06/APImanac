@@ -1,0 +1,53 @@
+profile_id: pat
+api_id: github
+description: GitHub REST API with a personal access token in the Authorization header.
+origins: [https://api.github.com]
+auth:
+  type: bearer
+  credential_id: github-pat
+  components:
+    - name: token
+      description: A GitHub personal access token scoped by the user.
+  placements:
+    - kind: header
+      header: Authorization
+      template: 'Bearer {token}'
+  scopes: [repo, read:org]
+permissions:
+  - method: GET
+    path: /repos/*/*
+    decision: auto
+  - method: GET
+    path: /repos/*/*/issues/**
+    decision: auto
+  - method: GET
+    path: /search/**
+    decision: auto
+  - method: GET
+    path: /user
+    decision: auto
+  - method: POST
+    path: /repos/*/*/issues/*/comments
+    decision: confirm
+  - method: DELETE
+    path: /**
+    decision: deny
+  - method: PUT
+    path: /**
+    decision: deny
+  - method: PATCH
+    path: /**
+    decision: deny
+network_scope: public
+redirects:
+  max: 3
+cache:
+  enabled: false
+response:
+  allowed_headers: [x-ratelimit-remaining, x-ratelimit-reset]
+health_probe:
+  method: GET
+  path: /rate_limit
+  expect_status: 200
+verification:
+  state: candidate

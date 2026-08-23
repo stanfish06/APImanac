@@ -1,0 +1,26 @@
+id: defunct-directory
+name: Defunct Directory API
+description: A directory listing service that no longer answers. Kept as a reviewed record so old references still resolve.
+categories:
+- directory
+tags:
+- directory
+- listing
+aliases:
+- defunct
+lifecycle: gone
+curation: imported
+sources:
+- public-apis
+capabilities: []
+profiles: []
+homepage: https://defunct.example
+provenance:
+  description:
+    source: public-apis
+    last_observed: A directory listing service that no longer answers. Kept as a reviewed record so old references still resolve.
+    curated: false
+  name:
+    source: public-apis
+    last_observed: Defunct Directory API
+    curated: false

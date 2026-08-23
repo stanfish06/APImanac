@@ -1,0 +1,4 @@
+# Any catalog directory, at any depth, is compared byte for byte against HEAD.
+**/catalog/** -text
+tests/fixtures/** -text
+bun.lock -text

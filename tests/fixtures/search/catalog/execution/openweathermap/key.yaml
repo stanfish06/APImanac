@@ -1,0 +1,34 @@
+profile_id: key
+api_id: openweathermap
+origins:
+  - https://api.openweathermap.org
+auth:
+  type: query_key
+  credential_id: owm-key
+  components:
+    - name: key
+  placements:
+    - kind: query
+      parameter: appid
+      template: "{key}"
+permissions:
+  - method: GET
+    path: /data/**
+    decision: auto
+  - method: POST
+    path: /**
+    decision: deny
+  - method: PUT
+    path: /**
+    decision: deny
+  - method: PATCH
+    path: /**
+    decision: deny
+  - method: DELETE
+    path: /**
+    decision: deny
+network_scope: public
+cache:
+  enabled: false
+verification:
+  state: candidate

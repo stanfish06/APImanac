@@ -1,0 +1,102 @@
+{
+  "count": 11,
+  "entries": [
+    {
+      "API": "Cat Facts",
+      "Description": "Daily cat facts",
+      "Auth": "",
+      "HTTPS": true,
+      "Cors": "no",
+      "Link": "https://catfact.ninja/",
+      "Category": "Animals"
+    },
+    {
+      "API": "Open Library",
+      "Description": "Books, book covers and related data",
+      "Auth": "",
+      "HTTPS": true,
+      "Cors": "yes",
+      "Link": "https://openlibrary.org/developers/api",
+      "Category": "Books"
+    },
+    {
+      "API": "Open.Library",
+      "Description": "Mirror listing of the same catalogue",
+      "Auth": "",
+      "HTTPS": true,
+      "Cors": "unknown",
+      "Link": "https://openlibrary.org/dev/docs/api/books",
+      "Category": "Books"
+    },
+    {
+      "API": "Airtable",
+      "Description": "Cloud database and spreadsheet hybrid",
+      "Auth": "apiKey",
+      "HTTPS": true,
+      "Cors": "unknown",
+      "Link": "https://airtable.com/api",
+      "Category": "Development"
+    },
+    {
+      "API": "api.data.gov",
+      "Description": "Shared API key service for United States federal APIs",
+      "Auth": "apiKey",
+      "HTTPS": true,
+      "Cors": "unknown",
+      "Link": "https://api.data.gov/docs/",
+      "Category": "Government"
+    },
+    {
+      "API": "REST Countries",
+      "Description": "Country information by name, code, region and currency",
+      "Auth": "",
+      "HTTPS": true,
+      "Cors": "yes",
+      "Link": "https://restcountries.com",
+      "Category": "Geocoding"
+    },
+    {
+      "Description": "An entry that never names the API it describes",
+      "Auth": "",
+      "HTTPS": true,
+      "Cors": "unknown",
+      "Link": "https://example.org/nameless",
+      "Category": "Development"
+    },
+    {
+      "API": "No Link API",
+      "Description": "An entry with no documentation link at all",
+      "Auth": "",
+      "HTTPS": true,
+      "Cors": "unknown",
+      "Category": "Development"
+    },
+    {
+      "API": "FTP Directory",
+      "Description": "Documentation served over a scheme the catalog does not accept",
+      "Auth": "",
+      "HTTPS": false,
+      "Cors": "unknown",
+      "Link": "ftp://files.example.org/docs",
+      "Category": "Development"
+    },
+    {
+      "API": "Uncategorized Service",
+      "Description": "An entry the directory never filed under a category",
+      "Auth": "apiKey",
+      "HTTPS": true,
+      "Cors": "unknown",
+      "Link": "https://example.org/uncategorized",
+      "Category": ""
+    },
+    {
+      "API": 42,
+      "Description": "An entry whose name is not a string",
+      "Auth": "",
+      "HTTPS": true,
+      "Cors": "unknown",
+      "Link": "https://example.org/numeric",
+      "Category": "Development"
+    }
+  ]
+}

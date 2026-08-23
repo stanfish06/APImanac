@@ -1,0 +1,4 @@
+id: one
+name: One
+lifecycle: merged
+merged_into: two

@@ -1,0 +1,10 @@
+id: lifecycle-gone
+name: Lifecycle gone
+description: A record exercising the gone lifecycle value.
+lifecycle: gone
+curation: imported
+sources: [public-apis]
+provenance:
+  description:
+    source: public-apis
+    last_observed: A record exercising the gone lifecycle value.

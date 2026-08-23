@@ -1,0 +1,52 @@
+profile_id: keyed
+api_id: ncbi-eutils
+description: E-utilities with the optional NCBI API key, which raises the rate limit.
+origins: [https://eutils.ncbi.nlm.nih.gov]
+base_path: /entrez/eutils
+auth:
+  type: query_key
+  credential_id: ncbi-api-key
+  components:
+    - name: key
+      description: The NCBI-issued API key for this account.
+  placements:
+    - kind: query
+      parameter: api_key
+      template: '{key}'
+permissions:
+  - method: GET
+    path: /entrez/eutils/esearch.fcgi
+    decision: auto
+  - method: GET
+    path: /entrez/eutils/esummary.fcgi
+    decision: auto
+  - method: GET
+    path: /entrez/eutils/efetch.fcgi
+    decision: auto
+  - method: GET
+    path: /entrez/eutils/elink.fcgi
+    decision: auto
+  - method: POST
+    path: /**
+    decision: deny
+  - method: PUT
+    path: /**
+    decision: deny
+  - method: PATCH
+    path: /**
+    decision: deny
+  - method: DELETE
+    path: /**
+    decision: deny
+network_scope: public
+redirects:
+  max: 2
+cache:
+  enabled: false
+health_probe:
+  method: GET
+  path: /entrez/eutils/einfo.fcgi
+  query: { retmode: json }
+  expect_status: 200
+verification:
+  state: candidate

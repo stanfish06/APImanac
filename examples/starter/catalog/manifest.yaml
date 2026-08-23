@@ -1,0 +1,20 @@
+catalog_name: apimanac
+schema_version: 1
+sources:
+  - id: public-apis
+    name: public-apis
+    manifest: catalog/sources/public-apis/manifest.yaml
+    homepage: https://github.com/public-apis/public-apis
+    license: MIT
+  - id: nango
+    name: Nango providers
+    manifest: catalog/sources/nango/manifest.yaml
+    homepage: https://github.com/NangoHQ/nango
+    license: ELv2
+  - id: apis-guru
+    name: APIs.guru directory
+    manifest: catalog/sources/apis-guru/manifest.yaml
+    homepage: https://apis.guru
+    license: CC0-1.0
+lifecycle_vocabulary: [active, deprecated, gone, merged]
+curation_vocabulary: [imported, curated]

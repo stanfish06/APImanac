@@ -1,0 +1,9 @@
+{
+  "input": {
+    "precomposed": "é",
+    "decomposed": "é",
+    "hangul": "가",
+    "jamo": "가"
+  },
+  "canonical": "{\"decomposed\":\"é\",\"hangul\":\"가\",\"jamo\":\"가\",\"precomposed\":\"é\"}"
+}

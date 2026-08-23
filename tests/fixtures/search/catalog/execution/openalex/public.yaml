@@ -1,0 +1,46 @@
+profile_id: public
+api_id: openalex
+origins:
+  - https://api.openalex.org
+auth:
+  type: none
+permissions:
+  - method: GET
+    path: /works/**
+    decision: auto
+  - method: GET
+    path: /authors/**
+    decision: auto
+  - method: GET
+    path: /sources/**
+    decision: auto
+  - method: GET
+    path: /institutions/**
+    decision: auto
+  - method: POST
+    path: /**
+    decision: deny
+  - method: PUT
+    path: /**
+    decision: deny
+  - method: PATCH
+    path: /**
+    decision: deny
+  - method: DELETE
+    path: /**
+    decision: deny
+network_scope: public
+cache:
+  enabled: true
+  ttl_seconds: 900
+verification:
+  state: verified
+  verified_at: 2026-01-15T00:00:00Z
+  evidence:
+    contract_hash: v1:sha256:9e594e47c8071369d46912f261409372eb350479e5330870861ab216004b3c75
+    method: GET
+    path: /works
+    status: 200
+    response_hash: v1:sha256:0000000000000000000000000000000000000000000000000000000000000000
+    timestamp: 2026-01-15T00:00:00Z
+    tool_version: 0.0.0

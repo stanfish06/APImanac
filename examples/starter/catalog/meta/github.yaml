@@ -1,0 +1,21 @@
+id: github
+name: GitHub REST API
+description: >-
+  The GitHub REST API for repositories, issues, pull requests, users,
+  organizations, releases, and code search.
+homepage: https://github.com
+documentation: https://docs.github.com/rest
+categories: [developer, version-control]
+tags: [git, repositories, issues, pull-requests, code-search, releases]
+aliases: [github-com, api-github-com]
+lifecycle: active
+curation: curated
+sources: [manual]
+provenance:
+  name: { source: manual, curated: true }
+  description: { source: manual, curated: true }
+capabilities:
+  - Read repository, issue, pull request, and release metadata
+  - Search code, commits, issues, and repositories
+  - Read and write issue comments under an explicit permission rule
+profiles: [pat]

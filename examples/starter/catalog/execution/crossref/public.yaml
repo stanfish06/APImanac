@@ -1,0 +1,44 @@
+profile_id: public
+api_id: crossref
+description: The public Crossref REST API.
+origins: [https://api.crossref.org]
+auth:
+  type: none
+permissions:
+  - method: GET
+    path: /works/**
+    decision: auto
+  - method: GET
+    path: /journals/**
+    decision: auto
+  - method: GET
+    path: /members/**
+    decision: auto
+  - method: GET
+    path: /funders/**
+    decision: auto
+  - method: POST
+    path: /**
+    decision: deny
+  - method: PUT
+    path: /**
+    decision: deny
+  - method: PATCH
+    path: /**
+    decision: deny
+  - method: DELETE
+    path: /**
+    decision: deny
+network_scope: public
+redirects:
+  max: 2
+cache:
+  enabled: true
+  ttl_seconds: 900
+health_probe:
+  method: GET
+  path: /works
+  query: { rows: '1' }
+  expect_status: 200
+verification:
+  state: candidate

@@ -1,0 +1,10 @@
+id: lifecycle-deprecated
+name: Lifecycle deprecated
+description: A record exercising the deprecated lifecycle value.
+lifecycle: deprecated
+curation: imported
+sources: [public-apis]
+provenance:
+  description:
+    source: public-apis
+    last_observed: A record exercising the deprecated lifecycle value.

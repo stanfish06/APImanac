@@ -1,0 +1,41 @@
+profile_id: public
+api_id: datacite
+description: The public DataCite REST API.
+origins: [https://api.datacite.org]
+auth:
+  type: none
+permissions:
+  - method: GET
+    path: /dois/**
+    decision: auto
+  - method: GET
+    path: /clients/**
+    decision: auto
+  - method: GET
+    path: /providers/**
+    decision: auto
+  - method: POST
+    path: /**
+    decision: deny
+  - method: PUT
+    path: /**
+    decision: deny
+  - method: PATCH
+    path: /**
+    decision: deny
+  - method: DELETE
+    path: /**
+    decision: deny
+network_scope: public
+redirects:
+  max: 2
+cache:
+  enabled: true
+  ttl_seconds: 900
+health_probe:
+  method: GET
+  path: /dois
+  query: { 'page[size]': '1' }
+  expect_status: 200
+verification:
+  state: candidate

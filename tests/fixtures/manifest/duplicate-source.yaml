@@ -1,0 +1,11 @@
+catalog_name: apimanac-fixture
+schema_version: 1
+sources:
+  - id: nango
+    name: Nango
+    manifest: catalog/sources/nango/manifest.yaml
+    license: ELv2
+  - id: nango
+    name: Nango again
+    manifest: catalog/sources/nango/other.yaml
+    license: ELv2

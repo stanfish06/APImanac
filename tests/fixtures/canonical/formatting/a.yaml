@@ -1,0 +1,11 @@
+profile_id: public
+api_id: example
+origins:
+  - https://api.example.com
+auth:
+  type: none
+permissions:
+  - method: GET
+    path: /works/**
+    decision: auto
+network_scope: public

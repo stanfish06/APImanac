@@ -1,0 +1,6 @@
+id: stray
+name: Stray provenance
+provenance:
+  description:
+    source: not-declared
+    last_observed: text

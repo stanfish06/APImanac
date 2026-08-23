@@ -1,0 +1,7 @@
+# The same contract, written differently.
+network_scope: "public"
+permissions: [{ decision: "auto", path: "/works/**", method: "GET" }]
+auth: { type: "none" }
+origins: ["https://api.example.com"]
+api_id: "example"
+profile_id: 'public'

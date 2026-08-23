@@ -1,0 +1,39 @@
+id: ncbi-eutils
+name: NCBI E-utilities
+description: Programmatic access to the NCBI Entrez databases, including PubMed biomedical literature, Gene, Nucleotide and Protein sequence records, and Taxonomy.
+categories:
+- research
+- biology
+tags:
+- pubmed
+- genomic
+- nucleotide
+- sequence
+- entrez
+- biomedical
+- literature
+aliases:
+- eutils
+- entrez
+- ncbi
+lifecycle: active
+curation: curated
+sources:
+- manual
+capabilities:
+- Search PubMed biomedical literature and return matching UIDs
+- Fetch genomic nucleotide and protein sequence records
+- Summarize records and follow links between Entrez databases
+profiles:
+- public
+homepage: https://www.ncbi.nlm.nih.gov
+documentation: https://www.ncbi.nlm.nih.gov/books/NBK25501/
+provenance:
+  description:
+    source: manual
+    last_observed: Programmatic access to the NCBI Entrez databases, including PubMed biomedical literature, Gene, Nucleotide and Protein sequence records, and Taxonomy.
+    curated: true
+  name:
+    source: manual
+    last_observed: NCBI E-utilities
+    curated: true

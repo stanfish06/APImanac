@@ -1,0 +1,35 @@
+id: wikidata
+name: Wikidata
+description: A free structured knowledge graph of entities and statements that anyone can query and edit.
+categories:
+- reference
+- knowledge-graph
+tags:
+- knowledge
+- graph
+- statements
+- entities
+- structured
+- sparql
+aliases:
+- wikidata-org
+lifecycle: active
+curation: imported
+sources:
+- public-apis
+capabilities:
+- Read the structured statements of an entity
+- Run a SPARQL query over the knowledge graph
+profiles:
+- public
+homepage: https://www.wikidata.org
+documentation: https://www.wikidata.org/w/api.php
+provenance:
+  description:
+    source: public-apis
+    last_observed: A free structured knowledge graph of entities and statements that anyone can query and edit.
+    curated: false
+  name:
+    source: public-apis
+    last_observed: Wikidata
+    curated: false

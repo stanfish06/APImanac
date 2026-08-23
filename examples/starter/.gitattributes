@@ -1,0 +1,3 @@
+# Authority is a byte comparison between the worktree file and its HEAD blob,
+# so no content filter may rewrite catalog bytes.
+catalog/** -text

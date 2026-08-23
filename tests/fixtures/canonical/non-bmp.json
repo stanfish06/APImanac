@@ -1,0 +1,8 @@
+{
+  "input": {
+    "emoji": "😀",
+    "cjk": "𠮷",
+    "mixed": "a😀b"
+  },
+  "canonical": "{\"cjk\":\"𠮷\",\"emoji\":\"😀\",\"mixed\":\"a😀b\"}"
+}

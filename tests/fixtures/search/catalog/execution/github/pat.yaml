@@ -1,0 +1,40 @@
+profile_id: pat
+api_id: github
+origins:
+  - https://api.github.com
+auth:
+  type: bearer
+  credential_id: github-pat
+  components:
+    - name: token
+  placements:
+    - kind: header
+      header: Authorization
+      template: Bearer {token}
+permissions:
+  - method: GET
+    path: /repos/**
+    decision: auto
+  - method: GET
+    path: /search/**
+    decision: auto
+  - method: GET
+    path: /user
+    decision: auto
+  - method: POST
+    path: /**
+    decision: deny
+  - method: PUT
+    path: /**
+    decision: deny
+  - method: PATCH
+    path: /**
+    decision: deny
+  - method: DELETE
+    path: /**
+    decision: deny
+network_scope: public
+cache:
+  enabled: false
+verification:
+  state: candidate

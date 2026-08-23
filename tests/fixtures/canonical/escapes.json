@@ -1,0 +1,9 @@
+{
+  "input": {
+    "quote": "he said \"hi\"",
+    "backslash": "a\\b",
+    "control": "\u0000\u001f",
+    "shorts": "\b\f\n\r\t"
+  },
+  "canonical": "{\"backslash\":\"a\\\\b\",\"control\":\"\\u0000\\u001f\",\"quote\":\"he said \\\"hi\\\"\",\"shorts\":\"\\b\\f\\n\\r\\t\"}"
+}

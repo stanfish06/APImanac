@@ -1,0 +1,6 @@
+revision: v0.62.4
+content_hash: v1:sha256:4f8efdea9a1cec605d40f4a13e44a64c41070739d7a58a0cf11a33358af76c24
+retrieved_at: '2026-02-14T09:34:12Z'
+source_url: https://raw.githubusercontent.com/NangoHQ/nango/v0.62.4/packages/providers/providers.yaml
+scopes_url: https://raw.githubusercontent.com/NangoHQ/nango/v0.62.4/packages/providers/scopes.yaml
+scopes_hash: v1:sha256:34d53a61f68857746a56d136b68dffee5430f799a8d62623bbd1ab81b04f677e

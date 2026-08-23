@@ -1,0 +1,38 @@
+id: semantic-scholar
+name: Semantic Scholar Academic Graph
+description: An academic graph of papers, author profiles and institutions with citation counts, references and influential citation metrics.
+categories:
+- research
+- bibliographic
+tags:
+- citations
+- papers
+- authors
+- institutions
+- graph
+- metadata
+- journals
+aliases:
+- s2
+- semanticscholar
+lifecycle: active
+curation: imported
+sources:
+- apis-guru
+capabilities:
+- Look up citation counts for a paper
+- Read author profiles and their institutions
+- Search papers by title or field of study
+profiles:
+- public
+homepage: https://www.semanticscholar.org
+documentation: https://api.semanticscholar.org/api-docs/
+provenance:
+  description:
+    source: apis-guru
+    last_observed: An academic graph of papers, author profiles and institutions with citation counts, references and influential citation metrics.
+    curated: false
+  name:
+    source: apis-guru
+    last_observed: Semantic Scholar Academic Graph
+    curated: false

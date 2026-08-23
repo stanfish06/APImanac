@@ -1,0 +1,7 @@
+openspec/
+docs/
+node_modules/
+dist/
+*.tmp-*
+
+.claude/
