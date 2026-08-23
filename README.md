@@ -140,5 +140,9 @@ Call can save response to file in case the response is large.
 }
 ```
 
+A `confirm` operation is confirmed by elicitation inside the same `call_api`
+invocation. A client that did not negotiate elicitation is refused; run
+`apimanac call` on a controlling terminal instead. No flag or tool argument
+is an approval.
 
 Skill: `skill/SKILL.md`. Every command and tool behaves identically without it.
