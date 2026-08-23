@@ -94,7 +94,7 @@ apimanac show github                                 # 2. read its fingerprint
 $EDITOR $XDG_CONFIG_HOME/apimanac/grants.yaml        # 3. activate a grant, by hand
 chmod 600 $XDG_CONFIG_HOME/apimanac/grants.yaml
 
-apimanac verify github --profile pat                 # 4. probe it, answering the prompt
+apimanac verify github --profile pat                 # 4. probe it on a controlling terminal
 #   Send it? [y/N] y
 
 git add catalog/ && git commit -m 'verify github/pat'  # 5. commit profile + evidence
@@ -140,7 +140,5 @@ Call can save response to file in case the response is large.
 }
 ```
 
-Confirmed operations need a client that negotiates elicitation at protocol
-revision `2025-06-18` or later. The server speaks stdio and opens no listener.
 
 Skill: `skill/SKILL.md`. Every command and tool behaves identically without it.

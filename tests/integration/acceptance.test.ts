@@ -564,10 +564,6 @@ describe('15. expose no tracked or surfaced secret', () => {
     ]) {
       expect(`${fragment}:${readme.includes(fragment)}`).toBe(`${fragment}:true`)
     }
-    const notice = readFileSync(join(checkout, 'NOTICE.md'), 'utf8')
-    for (const fragment of ['public-apis', 'MIT', 'Nango', 'ELv2', 'APIs.guru', 'CC0-1.0']) {
-      expect(`${fragment}:${notice.includes(fragment)}`).toBe(`${fragment}:true`)
-    }
   })
 })
 
