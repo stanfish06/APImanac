@@ -456,8 +456,14 @@ describe('no surface can change a grant', () => {
     expect(COMMANDS).toContain('auth status')
   })
 
-  test('the MCP surface exposes exactly three tools, none of which writes a grant', () => {
-    expect([...TOOL_NAMES]).toEqual(['search_apis', 'get_api', 'call_api'])
+  test('the MCP surface exposes exactly five tools, none of which writes a grant', () => {
+    expect([...TOOL_NAMES]).toEqual([
+      'search_apis',
+      'get_api',
+      'call_api',
+      'run_workflow',
+      'run_script',
+    ])
   })
 
   test('no call_api input reads as an approval or consent channel', () => {

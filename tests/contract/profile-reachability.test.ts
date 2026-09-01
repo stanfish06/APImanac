@@ -15,10 +15,16 @@ const REPO = Bun.fileURLToPath(new URL('../..', import.meta.url))
 
 function profilesUnder(prefix: string): { file: string; profile: ExecutionProfile }[] {
   const glob = new Bun.Glob('**/*.yaml')
-  return [...glob.scanSync({ cwd: join(REPO, prefix) })].sort().map((relative) => ({
-    file: `${prefix}/${relative}`,
-    profile: ExecutionProfile.parse(parse(readFileSync(join(REPO, prefix, relative), 'utf8'))),
-  }))
+  return (
+    [...glob.scanSync({ cwd: join(REPO, prefix) })]
+      .sort()
+      // Only `<api>/<profile>.yaml` is a profile; `<api>/workflows/…` is not.
+      .filter((relative) => !relative.includes('/workflows/'))
+      .map((relative) => ({
+        file: `${prefix}/${relative}`,
+        profile: ExecutionProfile.parse(parse(readFileSync(join(REPO, prefix, relative), 'utf8'))),
+      }))
+  )
 }
 
 /** A concrete path a pattern matches, so the rule can be evaluated for real. */

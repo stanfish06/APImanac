@@ -5,16 +5,17 @@ import { authStatus, formatAuthStatus } from './auth/status'
 import { loadWorkingTree } from './catalog/load'
 import { type CatalogRoot, ROOT_PRECEDENCE, resolveCatalogRoot } from './catalog/root'
 import { formatFinding, validateCatalog } from './catalog/validate'
-import { ApimanacError, EXIT_CODES, type ExitCode, asApimanacError } from './errors'
-import { callApi, type CallOutcome } from './execute/call'
+import { ApimanacError, asApimanacError, EXIT_CODES, type ExitCode } from './errors'
 import { ResponseCache } from './execute/cache'
-import { ApprovalTokens, ttyChannel } from './execute/confirm'
+import { type CallOutcome, callApi } from './execute/call'
+import { ApprovalTokens, ScriptApprovals, ttyChannel } from './execute/confirm'
 import { HealthStore } from './execute/health'
 import { verifyProfile } from './execute/verify'
+import { runScript, runWorkflow, type WorkflowRunOutcome } from './execute/workflow'
 import { runAdd, runMigrate, runRefresh } from './maintenance/commands'
 import type { ResponseMode } from './schema/vocab'
-import { localFacts } from './search/facts'
 import { DEFAULT_LIMIT, MAX_LIMIT } from './search/constants'
+import { localFacts } from './search/facts'
 import { CatalogQuery, validateFilters } from './search/query'
 import { formatShownRecord, showRecord } from './search/show'
 import { buildStore } from './store/build'
@@ -37,6 +38,8 @@ export const COMMANDS = [
   'auth status',
   'call',
   'verify',
+  'workflow run',
+  'script run',
   'cache list',
   'cache clear',
   'cache prune',
@@ -79,11 +82,15 @@ export const COMMAND_USAGE: Record<CommandName, string> = {
   call: 'call <api-id-or-alias> --path </relative/path> [--method <VERB>] [--profile <id>] [--account <name>]\n       [--query name=value …] [--header name=value …] [--body <text>] [--response inline|file] [--origin <origin>]\n  --query and --header repeat. A `confirm` operation needs a controlling terminal.',
   verify:
     'verify <api-id> --profile <profile> [--account <name>]\n  The only path from candidate to verified. Always prompts; refuses without a terminal.',
+  'workflow run':
+    'workflow run <api-id>/<workflow-id> [--params <json>] [--grants <path>] [--cache-dir <path>]\n  Run a committed, pinned workflow. Params are validated against its declared schema.\n  A `confirm` operation prompts on the controlling terminal, one request at a time.',
+  'script run':
+    'script run <file.ts> --bind <api-id>/<profile-id> [--bind …] [--params <json>]\n  Run an uncommitted script after approving its full source on the controlling terminal.\n  The script can call only the bound profiles; per-operation policy still applies.',
   'cache list':
     'cache list [--cache-dir <path>]\n  Sanitized origin, path and account labels only.',
   'cache clear': 'cache clear [--cache-dir <path>]\n  Remove every cached response.',
   'cache prune': 'cache prune [--cache-dir <path>]\n  Remove expired entries and shrink to quota.',
-  mcp: 'mcp [--grants <path>] [--store <path>] [--health <path>] [--cache-dir <path>]\n  stdio MCP server: search_apis, get_api, call_api. Opens no listener.',
+  mcp: 'mcp [--grants <path>] [--store <path>] [--health <path>] [--cache-dir <path>]\n  stdio MCP server: search_apis, get_api, call_api, run_workflow, run_script. Opens no listener.',
 }
 
 export function usageFor(command: CommandName): string {
@@ -119,7 +126,7 @@ function parseFlagValue(
 }
 
 /** Flags whose every occurrence is kept, collected under `<name>[]`. */
-const REPEATABLE_FLAGS = new Set(['query', 'header'])
+const REPEATABLE_FLAGS = new Set(['query', 'header', 'bind'])
 
 export function parseArgs(argv: readonly string[]): Argv {
   const flags: Record<string, string | boolean | string[]> = {}
@@ -205,7 +212,7 @@ function pairs(
 
 function runValidate({ argv, io, json }: CommandContext): unknown {
   const root = requireRoot(argv.flags)
-  const report = validateCatalog(loadWorkingTree(root.path, root.git))
+  const report = validateCatalog(loadWorkingTree(root.path, root.git), root.git)
   if (report.ok) {
     if (json) return { catalog_root: root.path, ok: true, findings: [] }
     io.out(`${root.path}: no findings`)
@@ -420,6 +427,130 @@ function callErrorKind(kind: CallOutcome['kind']) {
   }
 }
 
+function parseParamsFlag(flags: Record<string, string | boolean | string[]>): unknown {
+  const raw = flagString(flags, 'params')
+  if (raw === undefined) return undefined
+  try {
+    return JSON.parse(raw)
+  } catch (error) {
+    throw new ApimanacError('usage', `--params is not valid JSON: ${(error as Error).message}`)
+  }
+}
+
+function runServices() {
+  const session = `cli:${process.pid}:${randomUUID()}`
+  return {
+    tokens: new ApprovalTokens(session),
+    scriptApprovals: new ScriptApprovals(session),
+    // Only a controlling terminal can confirm; no flag substitutes for it.
+    channel: ttyChannel(),
+  }
+}
+
+function emitRun(outcome: WorkflowRunOutcome, io: Io, json: boolean): unknown {
+  if (outcome.kind === 'success') {
+    if (json) return outcome
+    io.out(`completed after ${outcome.calls} call(s)`)
+    io.out(JSON.stringify(outcome.result, null, 2))
+    if (outcome.stderr) io.err(`script stderr (untrusted):\n${outcome.stderr}`)
+    return undefined
+  }
+  throw new ApimanacError(runErrorKind(outcome.kind), outcome.message, {
+    outcome: outcome.kind,
+    api_id: outcome.api_id,
+    workflow_id: outcome.workflow_id,
+    reasons: outcome.reasons,
+    issues: outcome.issues,
+    calls: outcome.calls,
+    stderr: outcome.stderr,
+  })
+}
+
+function runErrorKind(kind: WorkflowRunOutcome['kind']) {
+  switch (kind) {
+    case 'invalid_params':
+      return 'unsupported_request' as const
+    case 'ineligible':
+      return 'profile_ineligible' as const
+    case 'approval_required':
+      return 'confirmation_required' as const
+    case 'approval_declined':
+      return 'confirmation_declined' as const
+    case 'sandbox_unavailable':
+      return 'unsupported_request' as const
+    default:
+      return 'policy_refused' as const
+  }
+}
+
+async function runWorkflowCmd({ argv, io, json }: CommandContext): Promise<unknown> {
+  const root = requireRoot(argv.flags)
+  const target = argv.positional[0]
+  const separator = target?.indexOf('/') ?? -1
+  if (!target || separator <= 0 || separator === target.length - 1) {
+    throw new ApimanacError('usage', 'workflow run needs <api-id>/<workflow-id>')
+  }
+  const { grants, health } = services(root, argv)
+  const cache = ResponseCache.open({ directory: flagString(argv.flags, 'cache-dir') })
+  try {
+    const outcome = await runWorkflow(
+      {
+        root,
+        api: target.slice(0, separator),
+        workflow: target.slice(separator + 1),
+        params: parseParamsFlag(argv.flags),
+      },
+      {
+        grants,
+        health,
+        cache,
+        ...runServices(),
+        confirmationHint:
+          'this operation requires an interactive confirmation; run `apimanac workflow run` yourself on a controlling terminal',
+      },
+    )
+    return emitRun(outcome, io, json)
+  } finally {
+    cache.close()
+    health.close()
+  }
+}
+
+async function runScriptCmd({ argv, io, json }: CommandContext): Promise<unknown> {
+  const root = requireRoot(argv.flags)
+  const file = argv.positional[0]
+  if (!file) throw new ApimanacError('usage', 'script run needs a <file.ts> path')
+  const bindings = (argv.flags['bind[]'] as string[] | undefined) ?? []
+  if (bindings.length === 0) {
+    throw new ApimanacError('usage', 'script run needs at least one --bind <api-id>/<profile-id>')
+  }
+  let source: string
+  try {
+    source = await Bun.file(file).text()
+  } catch (error) {
+    throw new ApimanacError('usage', `could not read \`${file}\`: ${(error as Error).message}`)
+  }
+  const { grants, health } = services(root, argv)
+  const cache = ResponseCache.open({ directory: flagString(argv.flags, 'cache-dir') })
+  try {
+    const outcome = await runScript(
+      { root, source, bindings, params: parseParamsFlag(argv.flags) },
+      {
+        grants,
+        health,
+        cache,
+        ...runServices(),
+        confirmationHint:
+          'an ad-hoc script requires approving its full source; run `apimanac script run` yourself on a controlling terminal',
+      },
+    )
+    return emitRun(outcome, io, json)
+  } finally {
+    cache.close()
+    health.close()
+  }
+}
+
 async function runVerify({ argv, io, json }: CommandContext): Promise<unknown> {
   const root = requireRoot(argv.flags)
   const api = argv.positional[0]
@@ -516,6 +647,8 @@ const HANDLERS: Record<CommandName, Handler> = {
   'auth status': runAuthStatus,
   call: runCall,
   verify: runVerify,
+  'workflow run': runWorkflowCmd,
+  'script run': runScriptCmd,
   'cache list': runCacheList,
   'cache clear': runCacheClear,
   'cache prune': runCachePrune,

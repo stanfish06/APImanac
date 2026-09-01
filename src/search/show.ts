@@ -1,10 +1,10 @@
 import type { GrantStore } from '../auth/grants'
 import { authorityFingerprint, contractHash } from '../catalog/canonical'
 import { buildIdentityIndex } from '../catalog/identity'
-import { loadWorkingTree, type CatalogSnapshot } from '../catalog/load'
+import { type CatalogSnapshot, type LoadedWorkflow, loadWorkingTree } from '../catalog/load'
 import type { CatalogRoot } from '../catalog/root'
 import type { HealthStore } from '../execute/health'
-import { evaluateEligibility } from '../policy/eligibility'
+import { blobDigest, evaluateEligibility, evaluateWorkflowEligibility } from '../policy/eligibility'
 import { describeOperations } from '../policy/permissions'
 import type { ExecutionProfile } from '../schema/execution'
 import type { CredentialReadiness, HealthState, PermissionDecision } from '../schema/vocab'
@@ -45,6 +45,21 @@ export interface ShownProfile {
   readonly operations: { method: string; path: string; decision: PermissionDecision }[]
   readonly operations_truncated: boolean
   readonly spec?: { id: string; url: string; format?: string; byte_size?: number; summary?: string }
+  /** Digest of the committed blob — the value a workflow binding pins. */
+  readonly blob_sha256?: string
+}
+
+/** A workflow as inspection presents it: contract and eligibility, never the script body. */
+export interface ShownWorkflow {
+  readonly workflow_id: string
+  readonly file: string
+  readonly script_file: string
+  readonly description: string
+  readonly bindings: { profile: string; blob_sha256: string }[]
+  readonly params: unknown
+  readonly runnable: boolean
+  readonly ineligible_reasons?: string[]
+  readonly draft: boolean
 }
 
 export interface ShownRecord {
@@ -69,6 +84,7 @@ export interface ShownRecord {
   /** At least one profile's auth shape is executable by this build. */
   readonly auth_supported: boolean
   readonly profiles: ShownProfile[]
+  readonly workflows: ShownWorkflow[]
 }
 
 export interface ShowServices {
@@ -102,6 +118,14 @@ export function showRecord(
     profiles.push(describeProfile(root, candidate.value, candidate.file, candidate.draft, services))
   }
 
+  const workflows: ShownWorkflow[] = []
+  for (const candidate of [...snapshot.workflows.values()].sort((a, b) =>
+    a.file < b.file ? -1 : 1,
+  )) {
+    if (candidate.value.api_id !== record.id) continue
+    workflows.push(describeWorkflow(root, candidate))
+  }
+
   return {
     id: record.id,
     requested,
@@ -122,6 +146,26 @@ export function showRecord(
     callable: profiles.some((profile) => profile.eligible),
     auth_supported: profiles.some((profile) => profile.auth_supported),
     profiles,
+    workflows,
+  }
+}
+
+function describeWorkflow(root: CatalogRoot, entry: LoadedWorkflow): ShownWorkflow {
+  const workflow = entry.value
+  const eligibility = evaluateWorkflowEligibility(root, workflow.api_id, workflow.workflow_id)
+  return {
+    workflow_id: workflow.workflow_id,
+    file: entry.file,
+    script_file: entry.scriptFile,
+    description: workflow.description,
+    bindings: workflow.bindings.map((binding) => ({
+      profile: binding.profile,
+      blob_sha256: binding.blob_sha256,
+    })),
+    params: workflow.params,
+    runnable: eligibility.eligible,
+    ineligible_reasons: eligibility.eligible ? undefined : eligibility.reasons,
+    draft: entry.draft || entry.scriptDraft,
   }
 }
 
@@ -134,6 +178,7 @@ function describeProfile(
 ): ShownProfile {
   const eligibility = evaluateEligibility(root, profile.api_id, profile.profile_id)
   const fingerprint = authorityFingerprint(profile)
+  const committedBlob = root.git.available ? root.git.readHeadBlob(file) : undefined
   const readiness = services.grants?.readinessFor(profile, fingerprint)
   const health = services.health?.stateOf(profile.api_id, profile.profile_id)
   const { operations, truncated } = describeOperations(profile, OPERATION_LIMIT)
@@ -173,6 +218,7 @@ function describeProfile(
           summary: summarize(spec.summary),
         }
       : undefined,
+    blob_sha256: committedBlob?.bytes ? blobDigest(committedBlob.bytes as Buffer) : undefined,
   }
 }
 
@@ -216,12 +262,27 @@ export function formatShownRecord(record: ShownRecord): string {
       }
       if (profile.operations_truncated) lines.push('    …more operations not shown')
     }
+    if (profile.blob_sha256) lines.push(`  committed blob:       ${profile.blob_sha256}`)
     if (profile.spec) {
       lines.push(
         `  specification: ${profile.spec.id} ${profile.spec.url}${profile.spec.byte_size ? ` (${profile.spec.byte_size} bytes)` : ''}`,
       )
       if (profile.spec.summary) lines.push(`    ${profile.spec.summary}`)
     }
+  }
+
+  for (const workflow of record.workflows) {
+    lines.push('')
+    lines.push(
+      `workflow ${workflow.workflow_id}  (${workflow.file})${workflow.draft ? ' draft' : ''}`,
+    )
+    if (workflow.description) lines.push(`  ${workflow.description}`)
+    lines.push(`  script: ${workflow.script_file}`)
+    for (const binding of workflow.bindings) {
+      lines.push(`  binds ${binding.profile} @ ${binding.blob_sha256}`)
+    }
+    lines.push(`  runnable: ${workflow.runnable}`)
+    for (const reason of workflow.ineligible_reasons ?? []) lines.push(`    — ${reason}`)
   }
   return lines.join('\n')
 }

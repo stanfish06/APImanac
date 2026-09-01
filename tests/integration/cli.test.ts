@@ -58,7 +58,7 @@ describe('the command surface is exactly the declared set', () => {
     expect(stdout).toBe(USAGE)
   })
 
-  test('the declared set is the fourteen v0 commands', () => {
+  test('the declared set is exactly the sixteen declared commands', () => {
     expect([...COMMANDS]).toEqual([
       'build',
       'search',
@@ -70,6 +70,8 @@ describe('the command surface is exactly the declared set', () => {
       'auth status',
       'call',
       'verify',
+      'workflow run',
+      'script run',
       'cache list',
       'cache clear',
       'cache prune',
@@ -87,6 +89,28 @@ describe('the command surface is exactly the declared set', () => {
     const { code, stderr } = await run([name])
     expect(code).toBe(EXIT_CODES.usage)
     expect(stderr).toContain('unknown_command')
+  })
+
+  test('help documents the workflow and script commands', async () => {
+    const { stdout } = await run(['--help'])
+    expect(stdout).toContain('workflow run')
+    expect(stdout).toContain('script run')
+    const workflowHelp = await run(['workflow', 'run', '--help'])
+    expect(workflowHelp.stdout).toContain('<api-id>/<workflow-id>')
+  })
+
+  test('workflow run needs an api/workflow target', async () => {
+    const { code, stderr } = await run(['--catalog', repo.root, 'workflow', 'run', 'bare'])
+    expect(code).toBe(EXIT_CODES.usage)
+    expect(stderr).toContain('<api-id>/<workflow-id>')
+  })
+
+  test('script run needs at least one --bind', async () => {
+    const file = join(scratch, 'x.ts')
+    writeFileSync(file, 'export default async function run() { return 1 }')
+    const { code, stderr } = await run(['--catalog', repo.root, 'script', 'run', file])
+    expect(code).toBe(EXIT_CODES.usage)
+    expect(stderr).toContain('--bind')
   })
 
   test('a two-word command parses as one command', () => {

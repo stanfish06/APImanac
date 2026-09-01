@@ -4,4 +4,7 @@ node_modules/
 dist/
 *.tmp-*
 
+openrouter.txt
+fal.txt
+
 .claude/

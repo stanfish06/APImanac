@@ -7,7 +7,7 @@ import type { Database } from 'bun:sqlite'
  * without re-reading the catalog.
  */
 
-export const BUILDER_VERSION = '1'
+export const BUILDER_VERSION = '2'
 
 const COMMON_COLUMNS = `
   id TEXT PRIMARY KEY,
@@ -51,6 +51,20 @@ const PROFILE_COLUMNS = `
 
 const PROFILE_PRIMARY_KEY = ', PRIMARY KEY (api_id, profile_id)'
 
+const WORKFLOW_COLUMNS = `
+  api_id TEXT NOT NULL,
+  workflow_id TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  bindings TEXT NOT NULL DEFAULT '[]',
+  params TEXT NOT NULL DEFAULT '{}',
+  file TEXT NOT NULL,
+  script_file TEXT NOT NULL,
+  state TEXT NOT NULL,
+  script_state TEXT NOT NULL
+`
+
+const WORKFLOW_PRIMARY_KEY = ', PRIMARY KEY (api_id, workflow_id)'
+
 const OPERATION_COLUMNS = `
   api_id TEXT NOT NULL,
   profile_id TEXT NOT NULL,
@@ -82,6 +96,13 @@ export function applySchema(db: Database): void {
 
   db.run(`CREATE TABLE d_operation (${OPERATION_COLUMNS})`)
   db.run(`CREATE TABLE a_operation (${OPERATION_COLUMNS})`)
+
+  db.run(
+    `CREATE TABLE d_workflow (${WORKFLOW_COLUMNS}, draft INTEGER NOT NULL${WORKFLOW_PRIMARY_KEY})`,
+  )
+  db.run(`CREATE TABLE a_workflow (${WORKFLOW_COLUMNS}${WORKFLOW_PRIMARY_KEY})`)
+  db.run('CREATE INDEX d_workflow_api ON d_workflow (api_id)')
+  db.run('CREATE INDEX a_workflow_api ON a_workflow (api_id)')
 
   db.run('CREATE INDEX d_profile_api ON d_profile (api_id)')
   db.run('CREATE INDEX a_profile_api ON a_profile (api_id)')

@@ -23,6 +23,7 @@ export interface SanitizedRequest {
 }
 
 export interface RequestPreview extends SanitizedRequest {
+  readonly kind: 'request'
   readonly decision: 'confirm'
   readonly summary: string
 }
@@ -34,6 +35,7 @@ export function previewOf(request: SanitizedRequest): RequestPreview {
     : 'no body'
   return {
     ...request,
+    kind: 'request',
     decision: 'confirm',
     summary: [
       `${request.method} ${request.origin}${request.path}${query ? `?${query}` : ''}`,

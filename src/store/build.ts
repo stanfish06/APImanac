@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, rmSync } from 'node:fs
 import { dirname, join } from 'node:path'
 import { authorityFingerprint, contractHash } from '../catalog/canonical'
 import { buildIdentityIndex } from '../catalog/identity'
-import type { CatalogSnapshot, LoadedFile } from '../catalog/load'
+import type { CatalogSnapshot, LoadedFile, LoadedWorkflow } from '../catalog/load'
 import { loadCommitted, loadWorkingTree } from '../catalog/load'
 import type { CatalogRoot } from '../catalog/root'
 import { validateCatalog } from '../catalog/validate'
@@ -12,7 +12,7 @@ import { ApimanacError } from '../errors'
 import type { ExecutionProfile } from '../schema/execution'
 import type { MetadataRecord } from '../schema/metadata'
 import { isExecutableAuthType } from '../schema/vocab'
-import { BUILDER_VERSION, applySchema, writeMeta } from './schema'
+import { applySchema, BUILDER_VERSION, writeMeta } from './schema'
 
 /**
  * Deterministic, network-free build. The store is written to a temp file and
@@ -48,8 +48,18 @@ export function canonicalInputHash(root: CatalogRoot): string {
 }
 
 function catalogFiles(catalogRoot: string): string[] {
-  const glob = new Bun.Glob('catalog/**/*.yaml')
-  return [...glob.scanSync({ cwd: catalogRoot, onlyFiles: true, dot: false })].sort()
+  // Workflow scripts are build input too: a `.ts`-only edit makes the store stale.
+  const globs = [
+    new Bun.Glob('catalog/**/*.yaml'),
+    new Bun.Glob('catalog/execution/*/workflows/*.ts'),
+  ]
+  const files = new Set<string>()
+  for (const glob of globs) {
+    for (const file of glob.scanSync({ cwd: catalogRoot, onlyFiles: true, dot: false })) {
+      files.add(file)
+    }
+  }
+  return [...files].sort()
 }
 
 interface ProfileRow {
@@ -98,6 +108,24 @@ function profileRow(entry: LoadedFile<ExecutionProfile>): ProfileRow {
     state: entry.state,
   }
 }
+
+function workflowValues(entry: LoadedWorkflow): unknown[] {
+  const workflow = entry.value
+  return [
+    workflow.api_id,
+    workflow.workflow_id,
+    workflow.description,
+    JSON.stringify(workflow.bindings),
+    JSON.stringify(workflow.params),
+    entry.file,
+    entry.scriptFile,
+    entry.state,
+    entry.scriptState,
+  ]
+}
+
+const WORKFLOW_INSERT_COLUMNS =
+  'api_id, workflow_id, description, bindings, params, file, script_file, state, script_state'
 
 function apiValues(entry: LoadedFile<MetadataRecord>): unknown[] {
   const record = entry.value
@@ -197,6 +225,19 @@ function populate(db: Database, snapshot: CatalogSnapshot, prefix: 'd' | 'a'): v
       )
     }
   }
+
+  const workflowInsert = db.prepare(
+    `INSERT INTO ${prefix}_workflow (${WORKFLOW_INSERT_COLUMNS}${draftColumn}) VALUES (${'?, '.repeat(9).slice(0, -2)}${draftValue})`,
+  )
+  const workflows = [...snapshot.workflows.values()].sort((a, b) => (a.file < b.file ? -1 : 1))
+  for (const entry of workflows) {
+    const values = workflowValues(entry)
+    workflowInsert.run(
+      ...((prefix === 'd'
+        ? [...values, entry.draft || entry.scriptDraft ? 1 : 0]
+        : values) as never[]),
+    )
+  }
 }
 
 function populateIndex(db: Database, snapshot: CatalogSnapshot): void {
@@ -252,7 +293,7 @@ export interface BuildOptions {
 export function buildStore(root: CatalogRoot, options: BuildOptions): BuildResult {
   const working = loadWorkingTree(root.path, root.git)
   if (!options.skipValidation) {
-    const report = validateCatalog(working)
+    const report = validateCatalog(working, root.git)
     if (!report.ok) {
       throw new ApimanacError(
         'validation_failed',

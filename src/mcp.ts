@@ -4,35 +4,47 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod'
 import { GrantStore } from './auth/grants'
 import { type CatalogRoot, resolveCatalogRoot } from './catalog/root'
-import { callApi, type CallOutcome } from './execute/call'
 import { ResponseCache } from './execute/cache'
-import { ApprovalTokens, type ConfirmationChannel } from './execute/confirm'
+import { type CallOutcome, callApi } from './execute/call'
+import {
+  ApprovalTokens,
+  type ConfirmationChannel,
+  confirmationQuestion,
+  ScriptApprovals,
+} from './execute/confirm'
 import { HealthStore } from './execute/health'
+import { runScript, runWorkflow, type WorkflowRunOutcome } from './execute/workflow'
 import { MCP_PIN } from './mcp-pin'
 import { matchesPattern } from './policy/permissions'
 import { parsePermissionPattern } from './schema/pattern'
-import { DEFAULT_LIMIT, MAX_LIMIT } from './search/constants'
-import { localFacts } from './search/facts'
-import { CatalogQuery, validateFilters } from './search/query'
-import { showRecord } from './search/show'
-import { openStore } from './store/open'
 import {
   AUTH_TYPES,
-  CURATION_STATES,
   CREDENTIAL_READINESS,
+  CURATION_STATES,
   HEALTH_STATES,
   LIFECYCLE_STATES,
   RESPONSE_MODES,
   VERIFICATION_STATES,
 } from './schema/vocab'
+import { DEFAULT_LIMIT, MAX_LIMIT } from './search/constants'
+import { localFacts } from './search/facts'
+import { CatalogQuery, validateFilters } from './search/query'
+import { showRecord } from './search/show'
+import { openStore } from './store/open'
 
 /**
- * The MCP surface: stdio, exactly three tools, and no remote listener. Tool
+ * The MCP surface: stdio, exactly five tools, and no remote listener. Tool
  * input schemas come from the same Zod declarations the server validates
  * against, so the advertised contract cannot drift from what is enforced.
  */
 
-export const TOOL_NAMES = ['search_apis', 'get_api', 'call_api'] as const
+export const TOOL_NAMES = [
+  'search_apis',
+  'get_api',
+  'call_api',
+  'run_workflow',
+  'run_script',
+] as const
 
 export const MAX_SEARCH_LIMIT = MAX_LIMIT
 export const DEFAULT_SEARCH_LIMIT = DEFAULT_LIMIT
@@ -86,11 +98,39 @@ export const CallApiInput = {
   response_mode: z.enum(RESPONSE_MODES).default('inline'),
 }
 
+/** Approval is carried by elicitation inside the invocation, never by an input. */
+export const RunWorkflowInput = {
+  api: z.string().describe('Canonical id or any recorded alias.'),
+  workflow: z.string().describe('The committed workflow id under this API.'),
+  params: z
+    .record(z.string(), z.unknown())
+    .optional()
+    .describe('Validated against the workflow’s declared parameter schema.'),
+}
+
+export const RunScriptInput = {
+  source: z
+    .string()
+    .describe('Complete single-file TypeScript module with a default export function.'),
+  bindings: z
+    .array(z.string())
+    .min(1)
+    .describe('`<api-id>/<profile-id>` entries the script may call; nothing else is reachable.'),
+  params: z.record(z.string(), z.unknown()).optional(),
+}
+
 const APPROVAL_SHAPED = /token|approv|consent|confirm/i
 
 /** No advertised `call_api` input may read as an approval channel. */
 export function callApiInputIsApprovalFree(): boolean {
   return !Object.keys(CallApiInput).some((name) => APPROVAL_SHAPED.test(name))
+}
+
+/** No execution tool advertises an approval-shaped input. */
+export function executionInputsAreApprovalFree(): boolean {
+  return [CallApiInput, RunWorkflowInput, RunScriptInput].every(
+    (inputs) => !Object.keys(inputs).some((name) => APPROVAL_SHAPED.test(name)),
+  )
 }
 
 function textResult(payload: unknown, isError = false) {
@@ -143,15 +183,18 @@ function elicitationChannel(server: McpServer): ConfirmationChannel | undefined 
   return {
     label: 'mcp-elicitation',
     async confirm(preview) {
+      const script = preview.kind === 'script'
       const response = await server.server.elicitInput({
-        message: `APImanac wants to send this request:\n\n${preview.summary}\n\nSend it?`,
+        message: `${confirmationQuestion(preview)}:\n\n${preview.summary}\n\n${script ? 'Run it?' : 'Send it?'}`,
         requestedSchema: {
           type: 'object',
           properties: {
             send: {
               type: 'boolean',
-              title: 'Send this request',
-              description: 'Confirm that APImanac may send exactly the request shown above.',
+              title: script ? 'Run this script' : 'Send this request',
+              description: script
+                ? 'Confirm that APImanac may run exactly the script shown above, bound to exactly the listed profiles.'
+                : 'Confirm that APImanac may send exactly the request shown above.',
             },
           },
           required: ['send'],
@@ -180,6 +223,7 @@ export function buildServer(root: CatalogRoot, options: McpOptions = {}): McpSer
   )
   const sessionId = `mcp:${process.pid}:${randomUUID()}`
   const tokens = new ApprovalTokens(sessionId)
+  const scriptApprovals = new ScriptApprovals(sessionId)
 
   const openHealth = () => HealthStore.open(options.healthPath)
 
@@ -331,7 +375,82 @@ export function buildServer(root: CatalogRoot, options: McpOptions = {}): McpSer
     },
   )
 
+  server.registerTool(
+    'run_workflow',
+    {
+      title: 'Run a committed workflow',
+      description:
+        'Run a committed, pinned workflow script by name with schema-validated parameters. The script executes in a sandbox whose only capability is calling its bound profiles; each call is policy-checked exactly like `call_api`, and a `confirm` operation elicits per hit.',
+      inputSchema: RunWorkflowInput,
+    },
+    async (input) => {
+      const live = currentRoot(root)
+      const health = openHealth()
+      const grants = GrantStore.load({ path: options.grantsPath })
+      const cache = ResponseCache.open({ directory: options.cacheDir })
+      try {
+        const outcome = await runWorkflow(
+          { root: live, api: input.api, workflow: input.workflow, params: input.params },
+          {
+            grants,
+            tokens,
+            scriptApprovals,
+            health,
+            cache,
+            channel: elicitationChannel(server),
+            confirmationHint:
+              'this client did not negotiate elicitation, so a `confirm` operation is unavailable through MCP; run `apimanac workflow run` on a controlling terminal',
+          },
+        )
+        return textResult(publicRunOutcome(outcome), outcome.kind !== 'success')
+      } finally {
+        cache.close()
+        health.close()
+      }
+    },
+  )
+
+  server.registerTool(
+    'run_script',
+    {
+      title: 'Run an ad-hoc script after interactive approval',
+      description:
+        'Run an uncommitted single-file TypeScript script. The complete source, requested profile bindings, and parameters are presented for approval by elicitation inside this invocation; nothing executes without it. The sandbox and per-call policy are identical to `run_workflow`.',
+      inputSchema: RunScriptInput,
+    },
+    async (input) => {
+      const live = currentRoot(root)
+      const health = openHealth()
+      const grants = GrantStore.load({ path: options.grantsPath })
+      const cache = ResponseCache.open({ directory: options.cacheDir })
+      try {
+        const outcome = await runScript(
+          { root: live, source: input.source, bindings: input.bindings, params: input.params },
+          {
+            grants,
+            tokens,
+            scriptApprovals,
+            health,
+            cache,
+            channel: elicitationChannel(server),
+            confirmationHint:
+              'this client did not negotiate elicitation, so an ad-hoc script cannot be approved through MCP; run `apimanac script run` on a controlling terminal',
+          },
+        )
+        return textResult(publicRunOutcome(outcome), outcome.kind !== 'success')
+      } finally {
+        cache.close()
+        health.close()
+      }
+    },
+  )
+
   return server
+}
+
+/** Run outcomes are already public-shaped; the pin names the protocol revision. */
+export function publicRunOutcome(outcome: WorkflowRunOutcome): Record<string, unknown> {
+  return { ...outcome, protocol_revision: MCP_PIN.protocolRevision }
 }
 
 /** Result variants a caller sees. No token or resumable approval handle exists. */

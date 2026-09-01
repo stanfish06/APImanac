@@ -1,10 +1,11 @@
-import { contractHash } from './canonical'
-import { buildIdentityIndex } from './identity'
-import type { CatalogIssue, CatalogSnapshot } from './load'
-import { countLedger } from '../schema/report'
+import { blobDigest } from '../policy/eligibility'
 import { SUPPORTED_SCHEMA_VERSION } from '../schema/manifest'
-import { canonicalHash } from './canonical'
-import { detectTrackedSecrets, describeSecretFinding } from './secrets'
+import { countLedger } from '../schema/report'
+import { canonicalHash, contractHash } from './canonical'
+import type { GitContext } from './git'
+import { buildIdentityIndex } from './identity'
+import { type CatalogIssue, type CatalogSnapshot, profilePath } from './load'
+import { describeSecretFinding, detectTrackedSecrets } from './secrets'
 
 /**
  * Catalog integrity. Every check runs and every finding is reported — never
@@ -16,7 +17,7 @@ export interface ValidationReport {
   readonly findings: CatalogIssue[]
 }
 
-export function validateCatalog(snapshot: CatalogSnapshot): ValidationReport {
+export function validateCatalog(snapshot: CatalogSnapshot, git?: GitContext): ValidationReport {
   const findings: CatalogIssue[] = [...snapshot.issues]
 
   const manifest = snapshot.manifest
@@ -120,6 +121,50 @@ export function validateCatalog(snapshot: CatalogSnapshot): ValidationReport {
           file: entry.file,
           field: 'verification.evidence.contract_hash',
           message: `evidence records ${evidence.contract_hash} but the profile hashes to ${computed}; re-run \`apimanac verify\``,
+        })
+      }
+    }
+  }
+
+  for (const entry of snapshot.workflows.values()) {
+    const workflow = entry.value
+    if (!snapshot.records.has(workflow.api_id)) {
+      findings.push({
+        kind: 'missing_api_reference',
+        file: entry.file,
+        field: 'api_id',
+        message: `declares api \`${workflow.api_id}\`, which has no metadata record`,
+      })
+    }
+    for (const binding of workflow.bindings) {
+      if (!snapshot.profiles.has(binding.profile)) {
+        findings.push({
+          kind: 'dangling_profile_link',
+          file: entry.file,
+          field: 'bindings',
+          message: `binds execution profile \`${binding.profile}\`, which has no file in this catalog`,
+        })
+        continue
+      }
+      if (!git?.available) continue
+      const [bindApi, bindProfile] = binding.profile.split('/') as [string, string]
+      const blob = git.readHeadBlob(profilePath(bindApi, bindProfile))
+      if (!blob.present || !blob.bytes) {
+        findings.push({
+          kind: 'binding_unpinned',
+          file: entry.file,
+          field: 'bindings',
+          message: `binds \`${binding.profile}\`, which is not committed; commit the profile first, then pin its blob digest`,
+        })
+        continue
+      }
+      const digest = blobDigest(blob.bytes as Buffer)
+      if (digest !== binding.blob_sha256) {
+        findings.push({
+          kind: 'binding_unpinned',
+          file: entry.file,
+          field: 'bindings',
+          message: `pins \`${binding.profile}\` at ${binding.blob_sha256}, but the committed profile blob is ${digest}; re-review the workflow and update the pin`,
         })
       }
     }

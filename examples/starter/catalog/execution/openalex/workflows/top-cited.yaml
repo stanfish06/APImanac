@@ -1,0 +1,21 @@
+workflow_id: top-cited
+api_id: openalex
+description: Fetch works for a topic across several years and return the most cited.
+bindings:
+  - profile: openalex/public
+    blob_sha256: v1:sha256:ce3e1efa19b79af26bb040047778b824ddc98974014830372a50103b6d651bb2
+params:
+  type: object
+  required: [topic]
+  properties:
+    topic:
+      type: string
+      description: An OpenAlex topic id, e.g. `t10017`.
+    years:
+      type: array
+      description: Publication years to sample.
+      items: { type: integer }
+    per_year:
+      type: integer
+      description: Works to pull per year before ranking.
+      default: 25

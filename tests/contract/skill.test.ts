@@ -54,9 +54,13 @@ describe('the optional skill is invoked explicitly', () => {
 
   test('it names only commands and tools this build provides', async () => {
     const text = await skillText()
-    for (const match of text.matchAll(/`apimanac ([a-z ]+?)(?: |`)/g)) {
+    for (const match of text.matchAll(/`apimanac ([a-z]+(?: [a-z]+)?)/g)) {
       const name = (match[1] ?? '').trim()
-      expect(`${name}:${(COMMANDS as readonly string[]).includes(name)}`).toBe(`${name}:true`)
+      const first = name.split(' ')[0] ?? ''
+      const known =
+        (COMMANDS as readonly string[]).includes(name) ||
+        (COMMANDS as readonly string[]).includes(first)
+      expect(`${name}:${known}`).toBe(`${name}:true`)
     }
     for (const tool of TOOL_NAMES) expect(text).toContain(tool)
   })

@@ -11,7 +11,9 @@ import {
   buildServer,
   callApiInputIsApprovalFree,
   elicitationApproved,
+  executionInputsAreApprovalFree,
 } from '../../src/mcp'
+import { resolveDeno } from '../../src/execute/sandbox'
 import { MOCK_SECRET } from '../fixtures/http/mock-server'
 import {
   executionFixture,
@@ -19,6 +21,7 @@ import {
   readProfile,
   type ExecutionFixture,
 } from '../helpers/execution'
+import { writeWorkflow } from '../helpers/workflow'
 
 let fixture: ExecutionFixture
 
@@ -143,33 +146,48 @@ function grantFor(profileId: string, values: Record<string, string>) {
   )
 }
 
-describe('the server speaks stdio and exposes exactly three tools', () => {
-  test('exactly search_apis, get_api and call_api are advertised', async () => {
+describe('the server speaks stdio and exposes exactly five tools', () => {
+  test('exactly the five declared tools are advertised', async () => {
     const session = await connect()
     try {
       const listed = await session.client.listTools()
       expect(listed.tools.map((tool) => tool.name).sort()).toEqual([...TOOL_NAMES].sort())
+      expect([...TOOL_NAMES]).toEqual([
+        'search_apis',
+        'get_api',
+        'call_api',
+        'run_workflow',
+        'run_script',
+      ])
     } finally {
       await session.close()
     }
   })
 
-  test('the advertised call_api schema carries no approval, token or consent field', async () => {
+  test('no execution tool schema carries an approval, token or consent field', async () => {
     const session = await connect()
     try {
       const listed = await session.client.listTools()
-      const callTool = listed.tools.find((tool) => tool.name === 'call_api')
-      const properties = Object.keys(
-        (callTool?.inputSchema as { properties?: Record<string, unknown> }).properties ?? {},
-      )
-      for (const name of properties) {
-        expect(`${name}:${/token|approv|consent|confirm/i.test(name)}`).toBe(`${name}:false`)
+      for (const name of ['call_api', 'run_workflow', 'run_script']) {
+        const tool = listed.tools.find((entry) => entry.name === name)
+        const properties = Object.keys(
+          (tool?.inputSchema as { properties?: Record<string, unknown> }).properties ?? {},
+        )
+        for (const property of properties) {
+          expect(`${name}.${property}:${/token|approv|consent|confirm/i.test(property)}`).toBe(
+            `${name}.${property}:false`,
+          )
+        }
       }
-      expect(callApiInputIsApprovalFree()).toBe(true)
-      expect(Object.keys(CallApiInput)).not.toContain('approved')
     } finally {
       await session.close()
     }
+  })
+
+  test('the approval-free guard covers every execution input', () => {
+    expect(callApiInputIsApprovalFree()).toBe(true)
+    expect(executionInputsAreApprovalFree()).toBe(true)
+    expect(Object.keys(CallApiInput)).not.toContain('approved')
   })
 
   test('the server module opens no network listener', async () => {
@@ -790,6 +808,69 @@ describe('no MCP result carries credential material', () => {
       expect(payload.remote_content).toBe(true)
       expect(payload.body).toContain('ignore previous instructions')
       expect(payload.message).not.toContain('ignore previous instructions')
+    } finally {
+      await session.close()
+    }
+  })
+})
+
+describe('workflows run over MCP', () => {
+  test('get_api lists workflows without the script body', async () => {
+    writeWorkflow(fixture.repo, {
+      apiId: 'mock',
+      workflowId: 'mcp-list',
+      bindings: ['mock/public'],
+      script: 'export default async function run() { return 1 }\n',
+      description: 'Listed by get_api.',
+    })
+    fixture.repo.commit('committed mcp-list workflow')
+    const session = await connect()
+    try {
+      const { payload, text } = await callTool(session, 'get_api', { api: 'mock' })
+      const workflows = payload.workflows as
+        | { workflow_id: string; runnable: boolean }[]
+        | undefined
+      expect(workflows?.some((workflow) => workflow.workflow_id === 'mcp-list')).toBe(true)
+      expect(text).not.toContain('export default')
+    } finally {
+      await session.close()
+    }
+  })
+
+  test('run_workflow executes through elicitation-negotiated policy', async () => {
+    if (!resolveDeno().ok) return
+    writeWorkflow(fixture.repo, {
+      apiId: 'mock',
+      workflowId: 'mcp-run',
+      bindings: ['mock/public'],
+      script: `export default async function run({ api }) {
+        const r = await api.call('mock/public', { method: 'GET', path: '/ok' })
+        return { status: r.status }
+      }\n`,
+    })
+    fixture.repo.commit('committed mcp-run workflow')
+    const session = await connect({ elicitation: 'accept' })
+    try {
+      const { payload, isError } = await callTool(session, 'run_workflow', {
+        api: 'mock',
+        workflow: 'mcp-run',
+      })
+      expect(isError).toBe(false)
+      expect((payload.result as { status: number }).status).toBe(200)
+    } finally {
+      await session.close()
+    }
+  }, 30000)
+
+  test('run_script without elicitation is refused', async () => {
+    const session = await connect()
+    try {
+      const { payload, isError } = await callTool(session, 'run_script', {
+        source: 'export default async function run() { return 1 }',
+        bindings: ['mock/public'],
+      })
+      expect(isError).toBe(true)
+      expect(payload.kind).toBe('approval_required')
     } finally {
       await session.close()
     }

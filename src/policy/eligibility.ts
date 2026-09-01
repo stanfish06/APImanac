@@ -1,13 +1,14 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parse } from 'yaml'
-import { authorityFingerprint, contractHash } from '../catalog/canonical'
+import { authorityFingerprint, contractHash, sha256Tagged } from '../catalog/canonical'
 import { describePathState } from '../catalog/git'
 import { buildIdentityIndex } from '../catalog/identity'
-import { loadCommitted, profilePath } from '../catalog/load'
+import { loadCommitted, profilePath, workflowPath, workflowScriptPath } from '../catalog/load'
 import type { CatalogRoot } from '../catalog/root'
 import { ExecutionProfile } from '../schema/execution'
 import { isExecutableAuthType } from '../schema/vocab'
+import { WorkflowDefinition } from '../schema/workflow'
 
 /**
  * Whether a profile may be executed. The decision is a live read of the
@@ -175,10 +176,167 @@ function safeParse(text: string): unknown {
 export function committedProfilesFor(root: CatalogRoot, apiId: string): string[] {
   if (!root.git.available) return []
   const prefix = `catalog/execution/${apiId}/`
+  return (
+    [...root.git.committedPaths()]
+      .filter((path) => path.startsWith(prefix) && path.endsWith('.yaml'))
+      .map((path) => path.slice(prefix.length, -'.yaml'.length))
+      // A nested path is never a profile id; `workflows/…` lives here too.
+      .filter((id) => !id.includes('/'))
+      .sort()
+  )
+}
+
+export function committedWorkflowsFor(root: CatalogRoot, apiId: string): string[] {
+  if (!root.git.available) return []
+  const prefix = `catalog/execution/${apiId}/workflows/`
   return [...root.git.committedPaths()]
     .filter((path) => path.startsWith(prefix) && path.endsWith('.yaml'))
     .map((path) => path.slice(prefix.length, -'.yaml'.length))
+    .filter((id) => !id.includes('/'))
     .sort()
+}
+
+/** Tagged SHA-256 of exact blob bytes — the value a workflow binding pins. */
+export function blobDigest(bytes: Buffer): string {
+  return sha256Tagged(bytes)
+}
+
+export interface ResolvedBinding {
+  readonly profile: string
+  readonly blob_sha256: string
+}
+
+export interface EligibleWorkflow {
+  readonly eligible: true
+  readonly definitionFile: string
+  readonly scriptFile: string
+  /** Parsed from the `HEAD` blob, never from the worktree file. */
+  readonly definition: WorkflowDefinition
+  /** The committed script bytes; the sandbox executes exactly these. */
+  readonly scriptBytes: Buffer
+  readonly bindings: readonly ResolvedBinding[]
+}
+
+export interface IneligibleWorkflow {
+  readonly eligible: false
+  readonly definitionFile: string
+  readonly scriptFile: string
+  /** Every unmet condition, not only the first. */
+  readonly reasons: string[]
+}
+
+export type WorkflowEligibility = EligibleWorkflow | IneligibleWorkflow
+
+/**
+ * Every workflow-side condition, resolved against one `HEAD` snapshot: both
+ * files tracked and byte-identical, the definition valid, and every binding's
+ * pinned digest equal to the bound profile's committed blob. The returned
+ * script bytes come from the blob, so a worktree edit after this check can
+ * never reach execution.
+ */
+export function evaluateWorkflowEligibility(
+  root: CatalogRoot,
+  apiId: string,
+  workflowId: string,
+): WorkflowEligibility {
+  const definitionFile = workflowPath(apiId, workflowId)
+  const scriptFile = workflowScriptPath(apiId, workflowId)
+  const reasons: string[] = []
+  const refuse = (): IneligibleWorkflow => ({
+    eligible: false,
+    definitionFile,
+    scriptFile,
+    reasons,
+  })
+
+  if (!root.git.available) {
+    reasons.push(root.noSnapshotReason ?? describePathState('no_snapshot', definitionFile))
+    return refuse()
+  }
+
+  const files = [definitionFile, scriptFile]
+  const blobs = root.git.readHeadBlobs(files)
+  const cleanBytes = new Map<string, Buffer>()
+  for (const file of files) {
+    if (root.git.isFiltered(file)) {
+      reasons.push(describePathState('filtered', file))
+      continue
+    }
+    const blob = blobs.get(file)
+    const absolute = join(root.path, file)
+    const worktree = existsSync(absolute) ? readFileSync(absolute) : undefined
+    if (!blob?.present) {
+      if (!worktree) reasons.push(`${file} exists in neither HEAD nor the worktree`)
+      else if (blob?.reason?.startsWith('not present in HEAD')) {
+        reasons.push(describePathState('untracked', file))
+      } else {
+        reasons.push(`${describePathState('unreadable_blob', file)}: ${blob?.reason}`)
+      }
+      continue
+    }
+    if (!worktree) {
+      reasons.push(describePathState('tracked_deleted', file))
+      continue
+    }
+    const committed = blob.bytes as Buffer
+    if (!worktree.equals(committed)) {
+      reasons.push(describePathState('tracked_modified', file))
+      continue
+    }
+    cleanBytes.set(file, committed)
+  }
+
+  const definitionBytes = cleanBytes.get(definitionFile)
+  if (!definitionBytes) return refuse()
+
+  const parsed = WorkflowDefinition.safeParse(safeParse(definitionBytes.toString('utf8')))
+  if (!parsed.success) {
+    reasons.push(
+      `${definitionFile} does not validate: ${parsed.error.issues
+        .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+        .join('; ')}`,
+    )
+    return refuse()
+  }
+  const definition = parsed.data
+  if (definition.api_id !== apiId || definition.workflow_id !== workflowId) {
+    reasons.push(`${definitionFile} declares ${definition.api_id}/${definition.workflow_id}`)
+    return refuse()
+  }
+
+  const bindingFiles = definition.bindings.map((binding) => {
+    const [bindApi, bindProfile] = binding.profile.split('/') as [string, string]
+    return { binding, file: profilePath(bindApi, bindProfile) }
+  })
+  const bindingBlobs = root.git.readHeadBlobs(bindingFiles.map((entry) => entry.file))
+  const bindings: ResolvedBinding[] = []
+  for (const { binding, file } of bindingFiles) {
+    const blob = bindingBlobs.get(file)
+    if (!blob?.present || !blob.bytes) {
+      reasons.push(`binding \`${binding.profile}\` names ${file}, which is not committed`)
+      continue
+    }
+    const digest = blobDigest(blob.bytes as Buffer)
+    if (digest !== binding.blob_sha256) {
+      reasons.push(
+        `binding \`${binding.profile}\` pins ${binding.blob_sha256} but the committed profile blob is ${digest}; re-review the workflow and update the pin`,
+      )
+      continue
+    }
+    bindings.push({ profile: binding.profile, blob_sha256: digest })
+  }
+
+  const scriptBytes = cleanBytes.get(scriptFile)
+  if (reasons.length || !scriptBytes) return refuse()
+
+  return {
+    eligible: true,
+    definitionFile,
+    scriptFile,
+    definition,
+    scriptBytes,
+    bindings,
+  }
 }
 
 /** Resolve an id or alias against the committed records only. */
