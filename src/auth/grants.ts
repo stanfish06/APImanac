@@ -236,13 +236,25 @@ export class GrantStore {
     const ready = accounts.filter((entry) => entry.ready)
     if (ready.length === 0) {
       const missing = [...new Set(accounts.flatMap((entry) => entry.missing))]
+      // The specific per-component failure (missing value, insecure permissions,
+      // file outside the credentials directory) names only the component, so it
+      // is safe to surface and distinguishes "unset" from "tighten to 0600".
+      const reasons = [
+        ...new Set(
+          accounts
+            .map((entry) => entry.reason)
+            .filter((reason): reason is string => Boolean(reason)),
+        ),
+      ]
       return {
         readiness: 'missing_component',
         grantPresent: true,
         credentialId: profile.auth.credential_id,
         requiredComponents: required,
         accounts,
-        message: `component(s) ${missing.join(', ')} did not resolve for any account`,
+        message: reasons.length
+          ? reasons.join('; ')
+          : `component(s) ${missing.join(', ')} did not resolve for any account`,
       }
     }
     if (!account && ready.length > 1 && !ready.some((entry) => entry.default)) {

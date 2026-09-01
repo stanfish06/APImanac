@@ -226,6 +226,23 @@ describe('grant readiness', () => {
     expect(readiness.message).toContain('token')
   })
 
+  test('the readiness message surfaces the specific file failure, not a generic one', () => {
+    // A 0644 credential file: the real file provider reports insecure
+    // permissions, and readiness must carry that reason, not just "did not resolve".
+    const path = join(credentials, 'token')
+    writeFileSync(path, SECRET, { mode: 0o644 })
+    chmodSync(path, 0o644)
+    const grantsPath = join(scratch, 'grants.yaml')
+    writeGrants(grantsPath, {
+      ...baseGrant,
+      accounts: [{ name: 'primary', components: { token: { provider: 'file', path: 'token' } } }],
+    })
+    const readiness = GrantStore.load({ path: grantsPath }).readinessFor(profile, fingerprint)
+    expect(readiness.readiness).toBe('missing_component')
+    expect(readiness.message).toContain('0600')
+    expect(readiness.message).not.toContain(path)
+  })
+
   test('a basic grant missing the password component is not ready', () => {
     const basic = parseProfile({
       api_id: 'example',
