@@ -22,6 +22,13 @@ ordinary web search.
    decision is.
 3. **Call.** `call_api` or `apimanac call <id> --path /relative/path`. Supply
    query parameters and headers as separate fields, never inside the path.
+4. **Compose.** For a multi-step job — polling a queue, sweeping parameters,
+   chaining calls — `run_workflow` or `apimanac workflow run <api>/<name>` runs
+   a committed workflow listed by `get_api`. `run_script` or
+   `apimanac script run <file.ts>` runs an uncommitted single-file script after
+   the user approves its complete source; the script can call only the profiles
+   named in its bindings, and every call obeys the same permission decisions as
+   `call_api`. Scripts have no network, file, environment, or import access.
 
 ## What the labels mean for you
 
