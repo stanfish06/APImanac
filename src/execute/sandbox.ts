@@ -141,6 +141,8 @@ export const BridgeCallRequest = z
   .object({
     method: z.string().min(1).max(16).default('GET'),
     path: z.string().min(1).max(4096),
+    /** One of the bound profile's declared origins; the first one when absent. */
+    origin: z.string().min(1).max(2048).optional(),
     query: z.record(z.string().max(256), z.string().max(8192)).optional(),
     headers: z.record(z.string().max(256), z.string().max(8192)).optional(),
     body_json: z.unknown().optional(),

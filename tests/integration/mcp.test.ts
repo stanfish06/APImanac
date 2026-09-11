@@ -1,25 +1,25 @@
-import { writeFileSync } from 'node:fs'
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
+import { writeFileSync } from 'node:fs'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { ElicitRequestSchema } from '@modelcontextprotocol/sdk/types.js'
 import { stringify } from 'yaml'
-import { MCP_PIN } from '../../src/mcp-pin'
+import { resolveDeno } from '../../src/execute/sandbox'
 import {
-  CallApiInput,
-  TOOL_NAMES,
   buildServer,
+  CallApiInput,
   callApiInputIsApprovalFree,
   elicitationApproved,
   executionInputsAreApprovalFree,
+  TOOL_NAMES,
 } from '../../src/mcp'
-import { resolveDeno } from '../../src/execute/sandbox'
+import { MCP_PIN } from '../../src/mcp-pin'
 import { MOCK_SECRET } from '../fixtures/http/mock-server'
 import {
+  type ExecutionFixture,
   executionFixture,
   fingerprintOf,
   readProfile,
-  type ExecutionFixture,
 } from '../helpers/execution'
 import { writeWorkflow } from '../helpers/workflow'
 
@@ -875,4 +875,81 @@ describe('workflows run over MCP', () => {
       await session.close()
     }
   })
+})
+
+describe('origin selection', () => {
+  test('call_api targets the named declared origin instead of the first one', async () => {
+    const session = await connect()
+    const mockBefore = fixture.mock.requests.length
+    const peerBefore = fixture.peer.requests.length
+    try {
+      const { payload } = await callTool(session, 'call_api', {
+        api: 'mock',
+        profile: 'twoorigin',
+        method: 'GET',
+        path: '/ok',
+        origin: fixture.peer.origin,
+      })
+      expect(payload.outcome).toBe('success')
+      expect(fixture.peer.requests.length).toBe(peerBefore + 1)
+      expect(fixture.mock.requests.length).toBe(mockBefore)
+    } finally {
+      await session.close()
+    }
+  })
+
+  test('call_api refuses an origin the profile does not declare and sends nothing', async () => {
+    const session = await connect()
+    const mockBefore = fixture.mock.requests.length
+    const peerBefore = fixture.peer.requests.length
+    try {
+      const { payload, isError } = await callTool(session, 'call_api', {
+        api: 'mock',
+        profile: 'twoorigin',
+        method: 'GET',
+        path: '/ok',
+        origin: 'https://elsewhere.example',
+      })
+      expect(isError).toBe(true)
+      expect(payload.outcome).toBe('policy_failure')
+      expect(payload.message).toContain('origin_not_allowed')
+      expect(fixture.peer.requests.length).toBe(peerBefore)
+      expect(fixture.mock.requests.length).toBe(mockBefore)
+    } finally {
+      await session.close()
+    }
+  })
+
+  test('a workflow script selects an origin per call', async () => {
+    if (!resolveDeno().ok) return
+    writeWorkflow(fixture.repo, {
+      apiId: 'mock',
+      workflowId: 'mcp-origin',
+      bindings: ['mock/twoorigin'],
+      script: `export default async function run({ params, api }) {
+        const r = await api.call('mock/twoorigin', { method: 'GET', path: '/ok', origin: params.origin })
+        return { outcome: r.outcome, status: r.status }
+      }\n`,
+      params: {
+        type: 'object',
+        required: ['origin'],
+        properties: { origin: { type: 'string' } },
+      },
+    })
+    fixture.repo.commit('committed mcp-origin workflow')
+    const session = await connect({ elicitation: 'accept' })
+    const peerBefore = fixture.peer.requests.length
+    try {
+      const { payload, isError } = await callTool(session, 'run_workflow', {
+        api: 'mock',
+        workflow: 'mcp-origin',
+        params: { origin: fixture.peer.origin },
+      })
+      expect(isError).toBe(false)
+      expect((payload.result as { status: number }).status).toBe(200)
+      expect(fixture.peer.requests.length).toBe(peerBefore + 1)
+    } finally {
+      await session.close()
+    }
+  }, 30000)
 })

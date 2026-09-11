@@ -1,13 +1,13 @@
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { GrantStore } from '../../src/auth/grants'
 import { HealthStore } from '../../src/execute/health'
 import {
+  formatShownRecord,
   OPERATION_LIMIT,
   SPEC_SUMMARY_LIMIT,
-  formatShownRecord,
   showRecord,
 } from '../../src/search/show'
 import { openRoot, starterCatalogRepo } from '../helpers/catalog'
@@ -42,6 +42,22 @@ describe('inspection reports identity, trust and both hashes', () => {
       'keyed',
       'public',
     ])
+  })
+
+  test('reviewer-attached resources are reported and rendered with their descriptions', () => {
+    const record = show('openalex')
+    expect(record?.resources).toEqual([
+      {
+        url: 'https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/filter-entity-lists',
+        description: 'Filter syntax reference for list endpoints',
+      },
+    ])
+    const text = formatShownRecord(record!)
+    expect(text).toContain('resources:')
+    expect(text).toContain(
+      'https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/filter-entity-lists  Filter syntax reference for list endpoints',
+    )
+    expect(show('ncbi-eutils')?.resources).toEqual([])
   })
 
   test('an alias resolves and the alias used is reported', () => {

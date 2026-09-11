@@ -73,6 +73,32 @@ describe('metadata records', () => {
     const record = MetadataRecord.parse({ id: 'x', name: 'X' })
     expect(record.profiles).toEqual([])
   })
+
+  test('resources are url plus optional one-line description and default to none', () => {
+    expect(MetadataRecord.parse({ id: 'x', name: 'X' }).resources).toEqual([])
+    const record = MetadataRecord.parse({
+      id: 'x',
+      name: 'X',
+      resources: [
+        { url: 'https://github.com/example/templates.git', description: 'prompt templates' },
+        { url: 'https://example.com/guide' },
+      ],
+    })
+    expect(record.resources).toHaveLength(2)
+    expect(record.resources[1]?.description).toBeUndefined()
+  })
+
+  test('a resource that is not a url, carries extra keys, or repeats a url is rejected', () => {
+    for (const resources of [
+      [{ url: 'not a url' }],
+      [{ url: 'https://example.com', kind: 'template' }],
+      [{ url: 'https://example.com' }, { url: 'https://example.com' }],
+    ]) {
+      const result = MetadataRecord.safeParse({ id: 'x', name: 'X', resources })
+      expect(result.success).toBe(false)
+      if (!result.success) expect(result.error.issues[0]?.path[0]).toBe('resources')
+    }
+  })
 })
 
 describe('execution profiles', () => {

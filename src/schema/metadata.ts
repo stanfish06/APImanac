@@ -30,6 +30,19 @@ export const SpecReference = z
   })
   .strict()
 
+/**
+ * A link a reviewer attaches for the agent to read before or while using the
+ * API: a prompt template repository, a worked example, a guide. The catalog
+ * never fetches it; `show`/`get_api` only surface the link.
+ */
+export const ResourceLink = z
+  .object({
+    url: z.string().url(),
+    /** One line on what the link holds, so the agent can decide whether to fetch it. */
+    description: z.string().min(1).max(300).optional(),
+  })
+  .strict()
+
 export const MetadataRecord = z
   .object({
     id: CanonicalId,
@@ -54,6 +67,8 @@ export const MetadataRecord = z
     provenance: z.record(z.string(), ProvenanceEntry).default({}),
     specs: z.array(SpecReference).default([]),
     capabilities: z.array(z.string().min(1).max(300)).default([]),
+    /** Reviewer-owned; no source adapter writes it. */
+    resources: z.array(ResourceLink).default([]),
     profiles: z.array(z.string().min(1)).default([]),
   })
   .strict()
@@ -86,6 +101,17 @@ export const MetadataRecord = z
         message: 'a record cannot alias its own canonical id',
       })
     }
+    const seenResources = new Set<string>()
+    for (const resource of value.resources) {
+      if (seenResources.has(resource.url)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['resources'],
+          message: `duplicate resource \`${resource.url}\``,
+        })
+      }
+      seenResources.add(resource.url)
+    }
     const seen = new Set<string>()
     for (const alias of value.aliases) {
       if (seen.has(alias)) {
@@ -100,6 +126,7 @@ export const MetadataRecord = z
   })
 
 export type ProvenanceEntry = z.infer<typeof ProvenanceEntry>
+export type ResourceLink = z.infer<typeof ResourceLink>
 export type SpecReference = z.infer<typeof SpecReference>
 export type MetadataRecord = z.infer<typeof MetadataRecord>
 

@@ -19,9 +19,13 @@ ordinary web search.
 2. **Inspect.** `get_api` or `apimanac show <id>` for the chosen record. This is
    where the operations, their permission decisions, and the profile's
    readiness live. Check that the operation you want is listed and what its
-   decision is.
+   decision is. `resources` lists links a reviewer attached — prompt template
+   repositories, worked examples, guides. Read the one that matches your task
+   before composing a request; the catalog never fetches them for you.
 3. **Call.** `call_api` or `apimanac call <id> --path /relative/path`. Supply
-   query parameters and headers as separate fields, never inside the path.
+   query parameters and headers as separate fields, never inside the path. A
+   profile with several origins sends to the first one unless `origin` (MCP)
+   or `--origin` names another; copy it exactly as `get_api` lists it.
 4. **Compose.** For a multi-step job — polling a queue, sweeping parameters,
    chaining calls — `run_workflow` or `apimanac workflow run <api>/<name>` runs
    a committed workflow listed by `get_api`. `run_script` or

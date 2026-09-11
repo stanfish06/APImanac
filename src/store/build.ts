@@ -142,6 +142,7 @@ function apiValues(entry: LoadedFile<MetadataRecord>): unknown[] {
     JSON.stringify(record.tags),
     JSON.stringify(record.sources),
     JSON.stringify(record.capabilities),
+    JSON.stringify(record.resources),
     JSON.stringify(record.specs.map((spec) => ({ id: spec.id, summary: spec.summary ?? '' }))),
     entry.file,
     entry.state,
@@ -149,7 +150,7 @@ function apiValues(entry: LoadedFile<MetadataRecord>): unknown[] {
 }
 
 const API_COLUMNS =
-  'id, name, description, homepage, documentation, lifecycle, curation, merged_into, categories, tags, sources, capabilities, spec_summary, file, state'
+  'id, name, description, homepage, documentation, lifecycle, curation, merged_into, categories, tags, sources, capabilities, resources, spec_summary, file, state'
 
 const PROFILE_INSERT_COLUMNS = [
   'api_id',
@@ -180,7 +181,9 @@ function populate(db: Database, snapshot: CatalogSnapshot, prefix: 'd' | 'a'): v
   const draftColumn = prefix === 'd' ? ', draft' : ''
   const draftValue = prefix === 'd' ? ', ?' : ''
   const apiInsert = db.prepare(
-    `INSERT INTO ${prefix}_api (${API_COLUMNS}${draftColumn}) VALUES (${'?, '.repeat(15).slice(0, -2)}${draftValue})`,
+    `INSERT INTO ${prefix}_api (${API_COLUMNS}${draftColumn}) VALUES (${API_COLUMNS.split(', ')
+      .map(() => '?')
+      .join(', ')}${draftValue})`,
   )
   const aliasInsert = db.prepare(
     `INSERT OR IGNORE INTO ${prefix}_alias (alias, api_id, kind) VALUES (?, ?, ?)`,

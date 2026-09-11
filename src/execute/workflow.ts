@@ -185,6 +185,7 @@ async function executeInSandbox(args: ExecuteArgs): Promise<WorkflowRunOutcome> 
         profile: bindProfile,
         method: request.method,
         path: request.path,
+        origin: request.origin,
         query: request.query,
         headers: request.headers,
         responseMode: 'inline',

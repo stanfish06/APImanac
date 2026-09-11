@@ -7,6 +7,7 @@ import type { HealthStore } from '../execute/health'
 import { blobDigest, evaluateEligibility, evaluateWorkflowEligibility } from '../policy/eligibility'
 import { describeOperations } from '../policy/permissions'
 import type { ExecutionProfile } from '../schema/execution'
+import type { ResourceLink } from '../schema/metadata'
 import type { CredentialReadiness, HealthState, PermissionDecision } from '../schema/vocab'
 import { isExecutableAuthType } from '../schema/vocab'
 
@@ -79,6 +80,8 @@ export interface ShownRecord {
   readonly draft: boolean
   readonly sources: string[]
   readonly capabilities: string[]
+  /** Reviewer-attached links: templates, examples, guides. Never fetched by the catalog. */
+  readonly resources: ResourceLink[]
   /** At least one profile passes every eligibility condition, so a call can go through. */
   readonly callable: boolean
   /** At least one profile's auth shape is executable by this build. */
@@ -143,6 +146,7 @@ export function showRecord(
     draft: entry.draft,
     sources: record.sources,
     capabilities: record.capabilities,
+    resources: record.resources,
     callable: profiles.some((profile) => profile.eligible),
     auth_supported: profiles.some((profile) => profile.auth_supported),
     profiles,
@@ -233,6 +237,13 @@ export function formatShownRecord(record: ShownRecord): string {
     record.tags.length ? `tags: ${record.tags.join(', ')}` : undefined,
     record.aliases.length ? `aliases: ${record.aliases.join(', ')}` : undefined,
     record.capabilities.length ? `capabilities:\n  ${record.capabilities.join('\n  ')}` : undefined,
+    record.resources.length
+      ? `resources:\n  ${record.resources
+          .map((resource) =>
+            resource.description ? `${resource.url}  ${resource.description}` : resource.url,
+          )
+          .join('\n  ')}`
+      : undefined,
   ].filter((line): line is string => Boolean(line))
 
   for (const profile of record.profiles) {

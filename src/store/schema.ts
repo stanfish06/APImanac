@@ -7,7 +7,7 @@ import type { Database } from 'bun:sqlite'
  * without re-reading the catalog.
  */
 
-export const BUILDER_VERSION = '2'
+export const BUILDER_VERSION = '3'
 
 const COMMON_COLUMNS = `
   id TEXT PRIMARY KEY,
@@ -22,6 +22,7 @@ const COMMON_COLUMNS = `
   tags TEXT NOT NULL DEFAULT '[]',
   sources TEXT NOT NULL DEFAULT '[]',
   capabilities TEXT NOT NULL DEFAULT '[]',
+  resources TEXT NOT NULL DEFAULT '[]',
   spec_summary TEXT NOT NULL DEFAULT '[]',
   file TEXT NOT NULL,
   state TEXT NOT NULL

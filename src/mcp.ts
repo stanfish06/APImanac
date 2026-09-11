@@ -90,6 +90,12 @@ export const CallApiInput = {
   account: z.string().optional(),
   method: z.string().default('GET'),
   path: z.string().describe('Slash-prefixed relative path. Query parameters go in `query`.'),
+  origin: z
+    .string()
+    .optional()
+    .describe(
+      "One of the profile's declared origins, exactly as listed by `get_api`. Defaults to the first declared origin.",
+    ),
   query: z.record(z.string(), z.string()).optional(),
   headers: z.record(z.string(), z.string()).optional(),
   body_json: z.unknown().optional(),
@@ -345,6 +351,7 @@ export function buildServer(root: CatalogRoot, options: McpOptions = {}): McpSer
             account: input.account,
             method: input.method,
             path: input.path,
+            origin: input.origin,
             query: input.query,
             headers: input.headers,
             responseMode: input.response_mode,
